@@ -1,0 +1,1 @@
+export function drawVignette(ctx:CanvasRenderingContext2D,w:number,h:number){const g=ctx.createRadialGradient(w/2,h/2,Math.min(w,h)*.25,w/2,h/2,Math.max(w,h)*.7);g.addColorStop(0,'transparent');g.addColorStop(1,'rgba(8,8,12,.48)');ctx.fillStyle=g;ctx.fillRect(0,0,w,h);}
