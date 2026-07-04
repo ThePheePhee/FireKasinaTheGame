@@ -1,15 +1,15 @@
 export const presentationContent:Record<string,string>={
- house:'The ordinary starting point: familiar identity, routines, and the sense that practice begins from somewhere known.',
- garden:'The domesticated edge of practice: simple, safe, repeatable conditions before the wilderness opens.',
- 'red-dot':'The training ground of the retreat: staying with the fire kasina object and its red-dot afterimage until attention becomes steadier and more workable.',
- mist:'Unclear, shifting, emotionally charged material. Not necessarily a problem; often the weather system through which practice begins to reorganize itself.',
- booboo:'The soggy territory of old hurts, self-pity, tenderness, embarrassment, and the weirdly comic melodrama of purification.',
- trauma:'Constricted passages where old patterns, fear, body memory, and narrative loops may have to be traversed slowly.',
- fireworks:'High-energy visual phenomena: bursts, lights, patterns, colour, and the spectacular side of the fire kasina territory.',
- tower:'Where perception starts revealing its own construction. A lookout point for impermanence, unsatisfactoriness, no-self, and the machinery of experience.',
- jhana:'Stable pleasure, collectedness, absorption, refinement, and the increasingly smooth terrain of concentration.',
- formless:'The edge of map-like experience: vastness, nothingness, neither-perception-nor-non-perception, and other hard-to-place modes.',
- healing:'Soft repair, integration, kindness, grief moving through, and the body-mind finding less violent configurations.',
- celestial:'Archetypal, devotional, angelic, divine, brahmavihāra-like, or otherwise luminous relational spaces.',
- magical:'Where attention, intention, perception, synchronicity, ritual imagination, and reality-testing become strange enough to require discipline.'
+ house:'Your adventure begins in the world you know. Rest here, remember who you are, and carry that memory when the wilderness grows strange.',
+ garden:'A quiet patch between home and mystery. Here, simple habits take root: sit, look, refresh the flame, and begin again.',
+ 'red-dot':'Your first training ground! Hold the little red afterimage steady. As attention strengthens, the gate to the wild country will open.',
+ mist:'The bright dot has faded, and the Murk has gathered. Do not fight the grey weather. Look gently—hidden colour and shape stir inside it.',
+ booboo:'Those who chase the Mists may sink into these gloomy waters. Old sorrow, confusion, and self-pity pull at your boots. Be kind, get grounded, and find the shore.',
+ trauma:'A fearful road beneath the Mists, where wounds from long ago still echo. Walk slowly, seek good allies, and beware the heavy breathing of Darth Vader.',
+ fireworks:'The inner sky erupts with stars, colours, patterns, and impossible light! Wonderful—but spectacle is a signpost, brave traveller, not the end of the road.',
+ tower:'From this high place, experience reveals how it builds itself moment by moment. Look clearly, and true insight may flash brighter than any firework.',
+ jhana:'These peaks hold deep calm, joy, and absorption. Cross the whole range with a steady heart, and a hidden pass may open into the Formless Beyond.',
+ formless:'Here the map can no longer contain the territory: infinite space, infinite consciousness, nothingness, and subtler arūpa jhānas wait beyond ordinary shape.',
+ healing:'Lay down your sword awhile. Grief softens, kindness returns, and body and mind remember gentler ways to live. Integration is treasure too.',
+ celestial:'Luminous beings, gods, and mysterious entities are said to gather here. Meet every presence with compassion, discernment, and both feet on the ground.',
+ magical:'Intention and perception behave strangely on this proving ground. Test what you find, keep your ethics close, and never mistake wonder for certainty.'
 };
