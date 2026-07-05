@@ -8,11 +8,12 @@ import {drawMap} from '../rendering/drawMap';
 import {drawVignette} from '../rendering/drawUI';
 import {onPixelArtReady} from '../rendering/pixelArtAssets';
 import './MapMode.css';
+import {mapProps,type MapProp} from '../data/mapProps';
 
 type Gesture={kind:'idle'|'possible-tap'|'pan'|'pinch';points:Map<number,{x:number;y:number}>;startPoint:{x:number;y:number};startView:View|null;startDistance:number;anchorWorld:{x:number;y:number}};
 const idleGesture=():Gesture=>({kind:'idle',points:new Map(),startPoint:{x:0,y:0},startView:null,startDistance:0,anchorWorld:{x:0,y:0}});
 
-export default function MapMode({onSelectRegion,onSelectRoute,onClear}:{onSelectRegion:(region:Region)=>void;onSelectRoute:(route:Route)=>void;onClear:()=>void}){
+export default function MapMode({onSelectRegion,onSelectRoute,onSelectProp,onClear}:{onSelectRegion:(region:Region)=>void;onSelectRoute:(route:Route)=>void;onSelectProp:(prop:MapProp)=>void;onClear:()=>void}){
  const containerRef=useRef<HTMLDivElement>(null),canvasRef=useRef<HTMLCanvasElement>(null),gesture=useRef<Gesture>(idleGesture()),suppressClick=useRef(false);
  const [size,setSize]=useState<ScreenSize>({width:1,height:1}),[viewport,setViewport]=useState<View>({x:0,y:0,scale:1}),[artRevision,setArtRevision]=useState(0);
 
@@ -33,6 +34,7 @@ export default function MapMode({onSelectRegion,onSelectRoute,onClear}:{onSelect
   <div className="path-legend" aria-label="Path families"><span><i className="generation"/>GENERATION</span><span><i className="deconstruction"/>DECONSTRUCTION</span><span><i className="balance"/>BALANCE / EXPLORATION</span></div>
   <div className="region-layer" aria-label="Map regions">{mapRegions.map(region=>{const point=worldToScreen(viewport,region.x,region.y),extent=regionExtent(region),diameter=Math.max(44,extent*2*viewport.scale),clipPath=region.shape.kind==='polygon'?`polygon(${region.shape.points.map(([x,y])=>`${(x/extent+1)*50}% ${(y/extent+1)*50}%`).join(',')})`:undefined;return <button key={region.id} className="map-region-hit" style={{left:point.x,top:point.y,width:diameter,height:diameter,zIndex:region.layer*1000+1000-Math.round(extent),clipPath}} aria-label={`Open ${region.name}`} title={region.name} onClick={event=>selectRegion(event,region)}/>})}</div>
   <div className="route-layer" aria-label="Map paths">{routes.map(route=>{const point=worldToScreen(viewport,...route.labelAt);return <button key={route.id} className={`map-route-hit ${route.family}`} style={{left:point.x,top:point.y}} onClick={event=>selectRoute(event,route)}>{route.name}</button>})}</div>
+  <div className="prop-layer" aria-label="Curious map objects">{mapProps.map(prop=>{const point=worldToScreen(viewport,prop.x,prop.y),hitSize=Math.max(38,prop.size*viewport.scale);return <button key={prop.id} className="map-prop-hit" style={{left:point.x,top:point.y,width:hitSize,height:hitSize}} aria-label={`Inspect ${prop.name}`} title={prop.name} onClick={event=>{event.stopPropagation();if(!suppressClick.current)onSelectProp(prop)}}/>})}</div>
   <div className="map-tools" aria-label="Map zoom controls"><button aria-label="Zoom in" onClick={()=>changeZoom(1.5)}>+</button><button aria-label="Zoom out" onClick={()=>changeZoom(1/1.5)}>−</button><button aria-label="Reset map view" onClick={()=>setViewport(fitMap(size))}>⌂</button></div>
  </div>;
 }
