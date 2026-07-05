@@ -29,7 +29,7 @@ export const interiorMaps:InteriorMap[]=[
  ]},
  {id:'fireworks-world',regionId:'fireworks',name:'Fireworks Peak',theme:'fireworks',floors:[
   floor('screens','The Four Screens','A volcanic climb through increasingly responsive inner skies',grid([
-   ['first','First Screen','The physical flame and its first bright afterimage.',[0,1]],['second','Second Screen','The red dot grows lively and strange.',[1,1]],['third','Third Screen','The murk flowers into geometry, colour, and imagery.',[2,1]],['fourth','Fourth Screen','A lucid, responsive luminous field opens overhead.',[3,1]]
+   ['first','First Screen','The dot itself: small, central, non-pixelated, fast-moving, and bound closely to attention.',[0,1]],['second','Second Screen','A wide curved field begins as the Murk, then slowly develops pixelated patterns, drawings, symmetry, and complex structures.',[1,1]],['third','Third Screen','Brief openings reveal volumetric, photorealistic faces, landscapes, scenes, and mysterious realms.',[2,1]],['fourth','Fourth Screen','The image becomes an immersive hyper-real world: no longer something watched, but a realm the traveller inhabits.',[3,1]]
   ],2,450,230,700,390),1800,1200),
   floor('materials','Luminous Materials','Phenomena gather into impossible substances',grid([
    ['gold','Molten Gold','Golden radiance pours through dark stone channels.',[4,1]],['plastic','The Plastic','Smooth luminous sheets fold and flex.',[0,2]],['tunnels','Tunnels','Spirals create corridors of apparent depth.',[1,2]],['scales','Scale Sheets','Overlapping plates tile the living sky.',[2,2]],['stars','Star Field','Pinpricks of brilliance open an immense night.',[3,2]],['washes','Colour Washes','Tides of colour replace object and edge.',[4,2]]

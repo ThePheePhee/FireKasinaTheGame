@@ -24,10 +24,10 @@ export const subMaps:SubMapDefinition[]=[
  ]},
  {id:'fireworks-interior',regionId:'fireworks',name:'Fireworks Peak',kicker:'THE CHANGING SKIES OF THE FIRE KASINA',levels:[
   {id:'screens',name:'I · The Four Screens',subtitle:'A field guide, not a compulsory sequence.',rooms:[
-   room('first','The First Screen','The outer image and its immediate afterimage: simple colour, contrast, and attention begin the climb.',[0,1]),
-   room('second','The Second Screen','The red dot and its companions become unstable, vivid, and increasingly responsive.',[1,1]),
-   room('third','The Third Screen','The murk comes alive with complex colour, geometry, imagery, and motion.',[2,1]),
-   room('fourth','The Fourth Screen','A spacious, lucid field where attention and imagery may behave with astonishing clarity.',[3,1],{label:'Fire Kasina Glossary',url:glossary})]},
+   room('first','The First Screen','The dot is this screen: small, usually central, clean-edged and non-pixelated. Its rapid inner movements track attention and may pulse with the breath.',[0,1]),
+   room('second','The Second Screen','A wide field curves around the traveller at a seemingly fixed distance. It begins as the Murk, responds slowly, and gradually forms pixelated patterns, drawings, and intricate repeated structures.',[1,1]),
+   room('third','The Third Screen','Through holes in the Second Screen, sudden lifelike worlds appear: volumetric landscapes, faces, scenes, and realms. They are often brief and favor quiet fascination over control.',[2,1]),
+   room('fourth','The Fourth Screen','The traveller is no longer watching a realm but wholly inside it. The world is vast, hyper-real and interactive; body and beings may respond as though everything were truly happening.',[3,1],{label:'Fire Kasina Glossary',url:glossary})]},
   {id:'materials',name:'II · Luminous Materials',subtitle:'Strange substances found above the cloud line.',rooms:[
    room('gold','Molten Gold','A rich, flowing golden texture—bright treasure poured across the inner sky.',[4,1]),
    room('plastic','The Plastic','Smooth, synthetic-looking sheets and surfaces that fold, flex, and transform.',[0,2]),
