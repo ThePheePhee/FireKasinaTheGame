@@ -26,8 +26,9 @@ The game ships with two transparent 4×4 PNG atlases in `public/assets/`:
 
 - `meditator-wizard-atlas.png`: directional walking frames, with down/right/left/up as rows.
 - `landmarks-atlas.png`: region landmarks plus bridge, station, and wilderness props.
+- `terrain-atlas.png`: sixteen repeating ground materials for wilderness and region biomes.
 
-Atlas loading and cell drawing live in `src/rendering/pixelArtAssets.ts`. Region-to-cell assignments and world-prop placement live in `src/rendering/drawMap.ts`.
+Atlas loading and cell drawing live in `src/rendering/pixelArtAssets.ts`. Terrain and landmark assignments, transition rims, and world-prop placement live in `src/rendering/drawMap.ts`.
 
 ## Replacing the procedural art
 
