@@ -1,0 +1,15 @@
+import type {RouteFamily} from './routes';
+
+export interface PathLore {title:string;family:RouteFamily;copy:string;reference?:{label:string;url:string}}
+export const pathContent:Record<string,PathLore>={
+ kindling:{title:'The Kindling Road',family:'generation',copy:'Here begins the path of generation. Feed attention with intention, brave traveller, and learn how the mind can compose light, image, and meaning. What you make may become vivid and powerful—but a well-made vision is still a made thing.',reference:{label:'Kasina Practice',url:'https://www.mctb.org/mctb2/table-of-contents/part-vi-my-spiritual-quest/57-the-fire-kasina/'}},
+ artificer:{title:"The Artificer's Causeway",family:'generation',copy:'Fireworks become craft along this high road. Carry colour and pattern from the Peak into the Proving Grounds, where wonder is tested, shaped, and given purpose.'},
+ ascent:{title:'The Luminous Ascent',family:'generation',copy:'Forms grow bright enough to seem alive upon this climb. Keep ethics and discernment in your pack; splendid company is no proof of a splendid destination.'},
+ unmaking:{title:'The Unmaking Way',family:'deconstruction',copy:'The path of deconstruction does not improve the picture—it watches the picture build and break. See each sensation arise, vanish, disappoint, and refuse to be “me”. The road opens by leaving no experience solid.',reference:{label:'The Three Characteristics',url:'https://www.mctb.org/mctb2/table-of-contents/part-i-the-fundamentals/5-the-three-characteristics/'}},
+ vanishing:{title:'The Vanishing Road',family:'deconstruction',copy:'Beyond even beautiful form, the trail grows thin. Do not clutch at absence. Let space, knowing, and nothingness reveal their own changing seams.'},
+ middle:{title:"The Wayfarer's Middle Path",family:'balance',copy:'Some quests need making; others need unmaking. This road teaches the traveller to explore without worshipping either tool—and to return home with what was learned.'},
+ clarity:{title:'Clarity Ridge',family:'connection',copy:'Spectacle and insight share a border, but not a crown. Cross slowly: ask what the fireworks reveal about change, rather than how dazzling they can become.'},
+ reality:{title:'The Reality-Testing Road',family:'connection',copy:'Bring every marvel to the Tower. Compare it with evidence, ethics, and ordinary life. A true treasure survives daylight.'},
+ integration:{title:'The Integration Descent',family:'balance',copy:'Wisdom must descend from its tower. Carry clear seeing into the body, old wounds, friendship, sleep, and supper; otherwise it is only another view from a window.'},
+ return:{title:'The Gentle Return',family:'connection',copy:'Deep stillness and healing meet along this quiet way. Rest is not retreat, and absorption is not escape, when both help the traveller return kinder and more whole.'}
+};
