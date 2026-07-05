@@ -1,12 +1,13 @@
 import {useEffect,useRef,useState} from 'react';
 import type {Region} from './data/mapRegions';
 import {presentationContent} from './data/presentationContent';
+import {presentationReferences} from './data/presentationReferences';
 import type {Player} from './engine/movement';
 import MapMode from './components/MapMode';
 import PlayerMode from './components/PlayerMode';
 
 type Mode='player'|'presentation';
-const startPlayer:Player={x:915,y:510,direction:'down',moving:false,step:0};
+const startPlayer:Player={x:800,y:550,direction:'down',moving:false,step:0};
 
 export default function App(){
  const [started,setStarted]=useState(false),[mode,setMode]=useState<Mode>('player'),[selected,setSelected]=useState<Region|null>(null);
@@ -22,6 +23,6 @@ export default function App(){
   }
   <header><div><b>FIRE KASINA</b><span>THE MAP OF YOU</span></div><nav aria-label="Game mode"><button className={mode==='player'?'active':''} onClick={()=>{setMode('player');setSelected(null)}}>♟ PLAYER</button><button className={mode==='presentation'?'active':''} onClick={()=>{setMode('presentation');setSelected(null)}}>⌖ MAP</button></nav></header>
   <aside className="help">{mode==='player'?<>MOVE <kbd>WASD</kbd> <kbd>↑↓←→</kbd></>:<>TAP · DRAG · PINCH TO EXPLORE</>}</aside>
-  {selected&&<section className="bubble dialogue" role="dialog" aria-live="polite" aria-label={selected.name}><button aria-label="Close dialogue" onClick={()=>setSelected(null)}>×</button><p>{mode==='player'?'AREA DISCOVERED':'MAP LORE'}</p><h2>{selected.name}</h2><div className="rule"/><p className="copy"><span className="dialogue-gem">◆</span>{presentationContent[selected.id]}</p><small className="dialogue-hint">{mode==='player'?'CLOSE TO CONTINUE':'TAP OUTSIDE OR × TO CLOSE'}</small></section>}
+  {selected&&<section className="bubble dialogue" role="dialog" aria-live="polite" aria-label={selected.name}><button aria-label="Close dialogue" onClick={()=>setSelected(null)}>×</button><p>{mode==='player'?'AREA DISCOVERED':'MAP LORE'}</p><h2>{selected.name}</h2><div className="rule"/><p className="copy"><span className="dialogue-gem">◆</span>{presentationContent[selected.id]}</p>{presentationReferences[selected.id]&&<div className="lore-links"><span>FIELD GUIDE</span>{presentationReferences[selected.id]!.map(reference=><a key={reference.label} href={reference.url} target="_blank" rel="noreferrer">{reference.label} ↗</a>)}</div>}<small className="dialogue-hint">{mode==='player'?'CLOSE TO CONTINUE':'TAP OUTSIDE OR × TO CLOSE'}</small></section>}
  </main>;
 }

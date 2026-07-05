@@ -1,0 +1,22 @@
+export interface LoreReference{label:string;url:string}
+
+const site='https://firekasina.org/';
+const glossary='https://firekasina.org/glossary/';
+const safety='https://firekasina.org/fire-kasina-safety-recommendations/';
+const book='https://firekasina.org/fire-kasina-book/';
+
+export const presentationReferences:Partial<Record<string,LoreReference[]>>={
+ house:[{label:'Fire Kasina',url:site}],
+ garden:[{label:'Practice Overview',url:site}],
+ 'red-dot':[{label:'The Dot',url:glossary}],
+ mist:[{label:'The Murk',url:glossary}],
+ booboo:[{label:'Grounding & Safety',url:safety}],
+ trauma:[{label:'Traveller’s Safety',url:safety}],
+ fireworks:[{label:'Fire & Flares',url:glossary}],
+ tower:[{label:'Insight & Awakening',url:site}],
+ jhana:[{label:'Jhāna & Concentration',url:book}],
+ formless:[{label:'The Fire Kasina Book',url:book}],
+ healing:[{label:'Grounding the Journey',url:safety}],
+ celestial:[{label:'Fourth Screen & Entities',url:glossary}],
+ magical:[{label:'Magickal Realms',url:glossary}],
+};
