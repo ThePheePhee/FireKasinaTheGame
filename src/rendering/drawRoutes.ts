@@ -1,6 +1,6 @@
 import type {Route} from '../data/routes';
 export function drawRoutes(ctx:CanvasRenderingContext2D,routes:Route[]){
- for(const route of routes){ctx.save();ctx.beginPath();route.points.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));
-  ctx.lineWidth=route.kind==='bridge'?14:8;ctx.strokeStyle={rail:'#3e3130',tram:'#d49b45',tunnel:'#6e4f72',bridge:'#b88750'}[route.kind];ctx.setLineDash(route.kind==='tunnel'?[13,12]:route.kind==='rail'?[3,10]:[]);ctx.stroke();
-  if(route.kind==='rail'){ctx.lineWidth=2;ctx.strokeStyle='#e0c38f';ctx.setLineDash([2,10]);ctx.stroke();}ctx.restore();}
+ const colors={generation:'#ef9946',deconstruction:'#8f73b7',balance:'#71ad8b',connection:'#d7c27b'};
+ for(const route of routes){ctx.save();ctx.beginPath();route.points.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));ctx.lineJoin='round';ctx.lineCap='round';ctx.lineWidth=13;ctx.strokeStyle='rgba(25,20,25,.65)';ctx.stroke();ctx.lineWidth=route.kind==='bridge'?8:6;ctx.strokeStyle=colors[route.family];ctx.setLineDash(route.kind==='tunnel'?[13,10]:route.kind==='rail'?[3,8]:[]);ctx.stroke();ctx.restore();}
 }
+export function drawRouteLabels(ctx:CanvasRenderingContext2D,routes:Route[]){const colors={generation:'#ef9946',deconstruction:'#8f73b7',balance:'#71ad8b',connection:'#d7c27b'};ctx.save();ctx.font='bold 13px monospace';ctx.textAlign='center';ctx.textBaseline='middle';for(const route of routes){const [x,y]=route.labelAt,w=ctx.measureText(route.name).width+12;ctx.fillStyle='rgba(22,18,25,.84)';ctx.fillRect(x-w/2,y-10,w,20);ctx.strokeStyle=colors[route.family];ctx.lineWidth=2;ctx.strokeRect(x-w/2,y-10,w,20);ctx.fillStyle='#fff0bc';ctx.fillText(route.name,x,y)}ctx.restore()}

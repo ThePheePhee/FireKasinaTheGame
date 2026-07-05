@@ -1,4 +1,4 @@
-export type TerrainType = 'home'|'garden'|'range'|'mist'|'lagoon'|'tunnel'|'peak'|'tower'|'hills'|'void'|'meadow'|'celestial'|'magical';
+export type TerrainType = 'home'|'garden'|'range'|'mist'|'lagoon'|'tunnel'|'chasm'|'inn'|'peak'|'tower'|'hills'|'void'|'meadow'|'celestial'|'magical';
 export type RegionShape={kind:'circle';radius:number}|{kind:'polygon';points:[number,number][]};
 export interface Region { id:string; name:string; x:number; y:number; shape:RegionShape; terrain:TerrainType; layer:number; }
 export const WORLD={width:1600,height:1100};
@@ -13,6 +13,8 @@ export const mapRegions:Region[]=[
  {id:'formless',name:'The Formless Beyond',x:1480,y:970,shape:{kind:'circle',radius:145},terrain:'void',layer:2},
  {id:'trauma',name:'The Trauma Tunnels',x:1080,y:570,shape:{kind:'circle',radius:125},terrain:'tunnel',layer:3},
  {id:'booboo',name:'Boohoo Lagoon',x:650,y:790,shape:{kind:'circle',radius:145},terrain:'lagoon',layer:3},
+ {id:'chasm',name:'The Chasm of Despair',x:940,y:760,shape:{kind:'circle',radius:105},terrain:'chasm',layer:3},
+ {id:'inn',name:'The Quarrelsome Inn',x:500,y:570,shape:{kind:'circle',radius:95},terrain:'inn',layer:3},
  {id:'garden',name:'The Garden',x:800,y:550,shape:{kind:'circle',radius:155},terrain:'garden',layer:4},
  {id:'red-dot',name:'Red Dot Range',x:920,y:510,shape:{kind:'circle',radius:65},terrain:'range',layer:5},
  {id:'house',name:'Your House',x:800,y:550,shape:{kind:'circle',radius:45},terrain:'home',layer:6},

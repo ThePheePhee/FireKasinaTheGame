@@ -12,6 +12,8 @@ export const presentationReferences:Partial<Record<string,LoreReference[]>>={
  mist:[{label:'The Murk',url:glossary}],
  booboo:[{label:'Grounding & Safety',url:safety}],
  trauma:[{label:'Traveller’s Safety',url:safety}],
+ chasm:[{label:'Grounding & Safety',url:safety}],
+ inn:[{label:'Patience, Faith & Curiosity',url:glossary}],
  fireworks:[{label:'Fire & Flares',url:glossary}],
  tower:[{label:'Insight & Awakening',url:site}],
  jhana:[{label:'Jhāna & Concentration',url:book}],

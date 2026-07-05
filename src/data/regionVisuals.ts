@@ -5,6 +5,8 @@ export const regionVisuals:Record<string,RegionVisual>={
  house:{artOffset:[-60,-50],artSize:100,labelOffset:[-60,12]},
  garden:{artOffset:[-55,50],artSize:150,labelOffset:[-55,125]},
  'red-dot':{artOffset:[0,10],artSize:105,labelOffset:[0,78]},
+ chasm:{artSize:175,labelOffset:[0,110]},
+ inn:{artSize:165,labelOffset:[0,105]},
 };
 
 export const mistWisps:[number,number,number][]=[
