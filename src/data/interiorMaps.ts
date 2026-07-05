@@ -1,11 +1,12 @@
-export type InteriorTheme='tower'|'fireworks'|'magick'|'jhana'|'divine'|'formless';
+export type InteriorTheme='tower'|'fireworks'|'magick'|'jhana'|'divine'|'formless'|'healing';
 export type InteriorShape='circle'|'rect';
-export interface InteriorZone {id:string;name:string;copy:string;x:number;y:number;w:number;h:number;shape:InteriorShape;art:[number,number]}
+export interface InteriorZone {id:string;name:string;copy:string;x:number;y:number;w:number;h:number;shape:InteriorShape;art:[number,number];artAtlas?:'special'|'legacy'}
 export interface InteriorObstacle {x:number;y:number;w:number;h:number}
 export interface InteriorFloor {id:string;name:string;subtitle:string;width:number;height:number;spawn:[number,number];zones:InteriorZone[];obstacles:InteriorObstacle[]}
 export interface InteriorMap {id:string;regionId:string;name:string;theme:InteriorTheme;floors:InteriorFloor[]}
 
 const zone=(id:string,name:string,copy:string,x:number,y:number,art:[number,number],w=230,h=180,shape:InteriorShape='rect'):InteriorZone=>({id,name,copy,x,y,w,h,shape,art});
+const specialZone=(id:string,name:string,copy:string,x:number,y:number,art:[number,number],w=260,h=210,shape:InteriorShape='circle'):InteriorZone=>({...zone(id,name,copy,x,y,art,w,h,shape),artAtlas:'special'});
 const floor=(id:string,name:string,subtitle:string,zones:InteriorZone[],width=1600,height=1000):InteriorFloor=>({id,name,subtitle,width,height,spawn:[width/2,height-100],zones,obstacles:[{x:70,y:height*.48,w:70,h:210},{x:width-140,y:height*.55,w:70,h:190}]});
 const grid=(items:Array<[string,string,string,[number,number]]>,columns:number,startX=230,startY=190,gapX=280,gapY=230)=>items.map(([id,name,copy,art],i)=>zone(id,name,copy,startX+(i%columns)*gapX,startY+Math.floor(i/columns)*gapY,art));
 const insightTrail=(items:Array<[string,string,string,[number,number]]>)=>items.map(([id,name,copy,art],i)=>{const row=Math.floor(i/4),column=i%4,x=row%2===0?260+column*360:1340-column*360;return zone(id,name,copy,x,850-row*230,art,210,160,'circle')});
@@ -42,11 +43,22 @@ export const interiorMaps:InteriorMap[]=[
  ]},
  {id:'jhana-world',regionId:'jhana',name:'Jhana Range',theme:'jhana',floors:[
   floor('rupa','The Four Rūpa Jhānas','A mountain path where each summit grows quieter',[
-   zone('j1','First Jhāna','Applied attention, rapture, happiness, and unification.',250,760,[0,4],280,220),zone('j2','Second Jhāna','Attention steadies; rapture and happiness remain.',600,560,[1,4],280,220),zone('j3','Third Jhāna','Rapture quiets into happiness and equanimity.',1000,360,[2,4],280,220),zone('j4','Fourth Jhāna','Deep equanimity and lucid stillness crown the range.',1400,170,[3,4],280,220)
+   {...zone('j1','First Jhāna','Applied attention, rapture, happiness, and unification.',250,760,[0,4],280,220),artAtlas:'legacy'},
+   {...zone('j2','Second Jhāna','Attention steadies; rapture and happiness remain.',600,560,[1,4],280,220),artAtlas:'legacy'},
+   {...zone('j3','Third Jhāna','Rapture quiets into happiness and equanimity.',1000,360,[2,4],280,220),artAtlas:'legacy'},
+   {...zone('j4','Fourth Jhāna','Deep equanimity and lucid stillness crown the range.',1400,170,[3,4],280,220),artAtlas:'legacy'}
   ],1700,1100),
   floor('atypical','The Atypical Passes','Custom absorptions branch through hidden caves',grid([
-   ['custom','Custom Jhāna Forge','Build absorption around a wholesome stable quality.',[4,4]],['slam','Slam-Shift Switchback','Shift rapidly between insight stages and jhānic factors.',[4,4]],['elements','Elemental Caves','Earth, water, fire, air, colour, and space shape the terrain.',[4,4]],['blends','Blended States','Factors mingle in ways the neat mountain map cannot show.',[4,4]]
-  ],2,430,260,700,400),1800,1150)
+   ['custom','Custom Jhāna Forge','Build absorption around a wholesome stable quality.',[0,1]],['slam','Slam-Shift Switchback','Shift rapidly between insight stages and jhānic factors.',[1,1]],['elements','Elemental Caves','Earth, water, fire, air, colour, and space shape the terrain.',[2,1]],['blends','Blended States','Factors mingle in ways the neat mountain map cannot show.',[3,1]]
+  ],2,430,260,700,400).map(item=>({...item,artAtlas:'special' as const})),1800,1150)
+ ]},
+ {id:'healing-world',regionId:'healing',name:'The Healing Meadows',theme:'healing',floors:[
+  floor('healing-arts','The Four Healing Gardens','Care for yourself, then learn how care may move through relationship and practice',[
+   specialZone('self-healing','Self Healing','A quiet garden for rest, grounding, self-compassion, and the patient repair of one’s own body and mind.',300,650,[0,0],300,260),
+   specialZone('energy-healing','Energy Healing','Explore healing framed through attention, touch, breath, subtle sensation, and energetic imagery—while keeping consent and discernment close.',650,330,[1,0],310,260),
+   specialZone('channeled-healing','Channeled Healing','A luminous shrine for practices understood as receiving or transmitting help beyond the ordinary self. Test claims gently and never abandon practical care.',1050,330,[2,0],310,260),
+   specialZone('intuitive-healing','Intuitive Healing','Listen for quiet pattern-recognition in body, image, relationship, and circumstance; then check intuition against evidence, ethics, and the person before you.',1400,650,[3,0],300,260)
+  ],1700,1050)
  ]},
  {id:'divine-world',regionId:'celestial',name:'The Divine Abodes',theme:'divine',floors:[
   floor('brahmaviharas','The Four Immeasurables','Four gardens make a celestial compass',[

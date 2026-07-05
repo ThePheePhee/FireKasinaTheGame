@@ -10,6 +10,10 @@ export const pathContent:Record<string,PathLore>={
  middle:{title:"The Wayfarer's Middle Path",family:'balance',copy:'Some quests need making; others need unmaking. This road teaches the traveller to explore without worshipping either tool—and to return home with what was learned.'},
  clarity:{title:'Clarity Ridge',family:'connection',copy:'Spectacle and insight share a border, but not a crown. Cross slowly: ask what the fireworks reveal about change, rather than how dazzling they can become.'},
  reality:{title:'The Reality-Testing Road',family:'connection',copy:'Bring every marvel to the Tower. Compare it with evidence, ethics, and ordinary life. A true treasure survives daylight.'},
- integration:{title:'The Integration Descent',family:'balance',copy:'Wisdom must descend from its tower. Carry clear seeing into the body, old wounds, friendship, sleep, and supper; otherwise it is only another view from a window.'},
+ integration:{title:'The Integration Crossing',family:'balance',copy:'Wisdom leaves its tower and crosses into care. Carry clear seeing into the body, old wounds, friendship, sleep, and supper; otherwise it is only another view from a window.'},
+ mending:{title:'The Mending Way',family:'balance',copy:'This road rises from the Trauma Tunnels toward practiced care. Wounds are not trophies, traveller; bring them to skill, companionship, patience, and the healing arts.'},
+ 'healers-light':{title:"The Healer's Light",family:'connection',copy:'Between Magick and the Divine Abodes lies a gentler craft: intention turned toward repair. Test every method, cherish compassion, and promise no miracle you cannot give.'},
+ siddhi:{title:'The Siddhi Pass',family:'connection',copy:'Deep absorption sometimes opens unusual abilities and perceptions. This pass joins Jhāna to Magick, but its guardrails are ethics, humility, and reality-testing.'},
+ contemplative:{title:'The Contemplative Loop',family:'connection',copy:'Stillness and insight need not live in separate kingdoms. This long loop carries collected attention back to investigation, then returns clear seeing to calm.'},
  return:{title:'The Gentle Return',family:'connection',copy:'Deep stillness and healing meet along this quiet way. Rest is not retreat, and absorption is not escape, when both help the traveller return kinder and more whole.'}
 };

@@ -7,6 +7,15 @@ export const regionVisuals:Record<string,RegionVisual>={
  'red-dot':{artOffset:[0,10],artSize:105,labelOffset:[0,78]},
  chasm:{artSize:175,labelOffset:[0,110]},
  inn:{artSize:165,labelOffset:[0,105]},
+ fireworks:{artSize:155,labelOffset:[0,78]},
+ magical:{artSize:155,labelOffset:[0,82]},
+ celestial:{artSize:175,labelOffset:[0,92]},
+ tower:{artSize:145,labelOffset:[0,82]},
+ healing:{artSize:150,labelOffset:[0,78]},
+ jhana:{artSize:175,labelOffset:[0,96]},
+ formless:{artSize:180,labelOffset:[0,100]},
+ trauma:{artSize:150,labelOffset:[0,82]},
+ booboo:{artSize:170,labelOffset:[0,96]},
 };
 
 export const mistWisps:[number,number,number][]=[

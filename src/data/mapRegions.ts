@@ -8,7 +8,7 @@ export const mapRegions:Region[]=[
  {id:'magical',name:'The Magick Proving Grounds',x:765,y:105,shape:{kind:'circle',radius:120},terrain:'magical',layer:2},
  {id:'celestial',name:'The Divine Abodes',x:1260,y:115,shape:{kind:'circle',radius:135},terrain:'celestial',layer:2},
  {id:'tower',name:'The Tower of Insight',x:300,y:510,shape:{kind:'circle',radius:105},terrain:'tower',layer:2},
- {id:'healing',name:'The Healing Meadows',x:245,y:990,shape:{kind:'circle',radius:135},terrain:'meadow',layer:2},
+ {id:'healing',name:'The Healing Meadows',x:1080,y:320,shape:{kind:'circle',radius:115},terrain:'meadow',layer:2},
  {id:'jhana',name:'Jhana Range',x:1110,y:940,shape:{kind:'circle',radius:145},terrain:'hills',layer:2},
  {id:'formless',name:'The Formless Beyond',x:1480,y:970,shape:{kind:'circle',radius:145},terrain:'void',layer:2},
  {id:'trauma',name:'The Trauma Tunnels',x:1080,y:570,shape:{kind:'circle',radius:125},terrain:'tunnel',layer:3},

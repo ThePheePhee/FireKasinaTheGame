@@ -11,7 +11,7 @@ export const presentationContent:Record<string,string>={
  tower:'From this high place, experience reveals how it builds itself moment by moment. Look clearly, and true insight may flash brighter than any firework.',
  jhana:'These peaks hold deep calm, joy, and absorption. Cross the whole range with a steady heart, and a hidden pass may open into the Formless Beyond.',
  formless:'Here the map can no longer contain the territory: infinite space, infinite consciousness, nothingness, and subtler arūpa jhānas wait beyond ordinary shape.',
- healing:'Lay down your sword awhile. Grief softens, kindness returns, and body and mind remember gentler ways to live. Integration is treasure too.',
+ healing:'Here the art of mending flows both inward and outward. Rest and restore yourself, then explore practices of energy, intuition, and compassionate healing for fellow travellers. A steady healer keeps discernment close.',
  celestial:'Luminous beings, gods, and mysterious entities are said to gather here. Meet every presence with compassion, discernment, and both feet on the ground.',
  magical:'Beyond the Fireworks, wonder becomes craft. In these proving grounds, intention and perception behave strangely. Test what you find, keep your ethics close, and never mistake magick for certainty.'
 };
