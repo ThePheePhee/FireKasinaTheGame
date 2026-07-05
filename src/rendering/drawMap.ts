@@ -14,5 +14,5 @@ function landmark(ctx:CanvasRenderingContext2D,r:Region){ctx.save();ctx.translat
  if(r.terrain==='magical'){ctx.strokeStyle='#f19fe7';ctx.lineWidth=7;ctx.strokeRect(-38,-38,76,76);ctx.rotate(Math.PI/4);ctx.strokeRect(-28,-28,56,56)}ctx.restore();}
 export function drawMap(ctx:CanvasRenderingContext2D,showLabels:boolean){ctx.fillStyle='#374f3a';ctx.fillRect(0,0,WORLD.width,WORLD.height);
  for(let y=10;y<WORLD.height;y+=32)for(let x=10;x<WORLD.width;x+=32){const n=hashNoise(x,y);ctx.fillStyle=n>.7?'#426043':'#314a35';ctx.fillRect(x+(n*8|0),y,3,8)}
- const garden=mapRegions.find(r=>r.id==='garden')!;blob(ctx,garden);drawRoutes(ctx,routes);for(const r of mapRegions.filter(r=>r.id!=='garden'))blob(ctx,r);for(const r of mapRegions)landmark(ctx,r);
+ for(const r of [...mapRegions].sort((a,b)=>a.layer-b.layer))blob(ctx,r);drawRoutes(ctx,routes);for(const r of [...mapRegions].sort((a,b)=>a.layer-b.layer))landmark(ctx,r);
  if(showLabels){ctx.font='bold 16px monospace';ctx.textAlign='center';ctx.textBaseline='top';for(const r of mapRegions){const y=r.y+(r.terrain==='home'?28:Math.min(regionExtent(r)*.55,75));ctx.fillStyle='rgba(20,18,20,.75)';const w=ctx.measureText(r.name).width+12;ctx.fillRect(r.x-w/2,y-3,w,23);ctx.fillStyle='#fff1bb';ctx.fillText(r.name,r.x,y)}}}
