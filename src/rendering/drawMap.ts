@@ -1,6 +1,7 @@
 import {mapRegions,WORLD,type Region,type TerrainType} from '../data/mapRegions';
 import {routes} from '../data/routes';import {drawRoutes} from './drawRoutes';import {hashNoise} from '../engine/terrainEffects';
 import {regionExtent} from '../engine/regionGeometry';
+import {drawAtlasCell,getAtlas} from './pixelArtAssets';
 const colors:Record<TerrainType,string>={home:'#d7773d',garden:'#79a84c',range:'#b58a50',mist:'#778995',lagoon:'#527f76',tunnel:'#55475d',peak:'#9e4938',tower:'#788da0',hills:'#9ebd55',void:'#171831',meadow:'#7dbd71',celestial:'#b8d9d5',magical:'#844f87'};
 function blob(ctx:CanvasRenderingContext2D,r:Region){ctx.save();ctx.fillStyle=colors[r.terrain];ctx.beginPath();if(r.shape.kind==='polygon')r.shape.points.forEach(([x,y],i)=>i?ctx.lineTo(r.x+x,r.y+y):ctx.moveTo(r.x+x,r.y+y));else for(let i=0;i<16;i++){const a=i/16*Math.PI*2,rr=r.shape.radius*(.83+hashNoise(i,r.x)*.24),x=r.x+Math.cos(a)*rr,y=r.y+Math.sin(a)*rr;i?ctx.lineTo(x,y):ctx.moveTo(x,y)}ctx.closePath();ctx.fill();ctx.restore();}
 function landmark(ctx:CanvasRenderingContext2D,r:Region){ctx.save();ctx.translate(r.x,r.y);ctx.fillStyle='#f5d67a';
@@ -12,7 +13,10 @@ function landmark(ctx:CanvasRenderingContext2D,r:Region){ctx.save();ctx.translat
  if(r.terrain==='hills'){ctx.strokeStyle='#f1e37b';ctx.lineWidth=10;ctx.beginPath();ctx.arc(0,0,70,Math.PI,0);ctx.stroke();}
  if(r.terrain==='void'){ctx.fillStyle='#c9b9ff';for(let i=0;i<18;i++)ctx.fillRect(hashNoise(i,4)*210-105,hashNoise(i,8)*180-90,4,4)}
  if(r.terrain==='magical'){ctx.strokeStyle='#f19fe7';ctx.lineWidth=7;ctx.strokeRect(-38,-38,76,76);ctx.rotate(Math.PI/4);ctx.strokeRect(-28,-28,56,56)}ctx.restore();}
+const landmarkCells:Record<string,[number,number]>={house:[0,0],garden:[1,0],'red-dot':[2,0],mist:[3,0],booboo:[0,1],trauma:[1,1],fireworks:[2,1],tower:[3,1],jhana:[0,2],formless:[1,2],healing:[2,2],celestial:[3,2],magical:[0,3]};
+function landmarkArt(ctx:CanvasRenderingContext2D,r:Region){const atlas=getAtlas('landmarks'),cell=landmarkCells[r.id];if(!atlas||!cell)return false;const extent=regionExtent(r),size=r.id==='mist'?330:r.id==='garden'?230:r.id==='house'?115:Math.max(120,Math.min(230,extent*1.45));drawAtlasCell(ctx,atlas,cell[0],cell[1],r.x,r.y,size);return true}
+function worldProps(ctx:CanvasRenderingContext2D){const atlas=getAtlas('landmarks');if(!atlas)return;for(const [x,y,size] of [[120,430,120],[1400,230,105],[360,620,95],[1330,735,110]] as [number,number,number][])drawAtlasCell(ctx,atlas,3,3,x,y,size);drawAtlasCell(ctx,atlas,1,3,820,805,105);drawAtlasCell(ctx,atlas,2,3,880,280,105)}
 export function drawMap(ctx:CanvasRenderingContext2D,showLabels:boolean){ctx.fillStyle='#374f3a';ctx.fillRect(0,0,WORLD.width,WORLD.height);
  for(let y=10;y<WORLD.height;y+=32)for(let x=10;x<WORLD.width;x+=32){const n=hashNoise(x,y);ctx.fillStyle=n>.7?'#426043':'#314a35';ctx.fillRect(x+(n*8|0),y,3,8)}
- for(const r of [...mapRegions].sort((a,b)=>a.layer-b.layer))blob(ctx,r);drawRoutes(ctx,routes);for(const r of [...mapRegions].sort((a,b)=>a.layer-b.layer))landmark(ctx,r);
+ for(const r of [...mapRegions].sort((a,b)=>a.layer-b.layer))blob(ctx,r);drawRoutes(ctx,routes);worldProps(ctx);for(const r of [...mapRegions].sort((a,b)=>a.layer-b.layer))if(!landmarkArt(ctx,r))landmark(ctx,r);
  if(showLabels){ctx.font='bold 16px monospace';ctx.textAlign='center';ctx.textBaseline='top';for(const r of mapRegions){const y=r.y+(r.terrain==='home'?28:Math.min(regionExtent(r)*.55,75));ctx.fillStyle='rgba(20,18,20,.75)';const w=ctx.measureText(r.name).width+12;ctx.fillRect(r.x-w/2,y-3,w,23);ctx.fillStyle='#fff1bb';ctx.fillText(r.name,r.x,y)}}}

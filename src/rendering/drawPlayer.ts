@@ -1,5 +1,7 @@
 import type {Player} from '../engine/movement';
+import {drawAtlasCell,getAtlas} from './pixelArtAssets';
 export function drawPlayer(ctx:CanvasRenderingContext2D,p:Player){
+ const atlas=getAtlas('player');if(atlas){const row={down:0,right:1,left:2,up:3}[p.direction],frame=p.moving?Math.floor(p.step)%4:0;drawAtlasCell(ctx,atlas,frame,row,p.x,p.y-13,76);return}
  const bob=p.moving?Math.round(Math.sin(p.step)*2):0,leg=Math.sin(p.step)>0?2:-2;ctx.save();ctx.translate(Math.round(p.x),Math.round(p.y+bob));
  ctx.fillStyle='rgba(0,0,0,.3)';ctx.fillRect(-9,11,18,5);ctx.fillStyle='#572f23';ctx.fillRect(-7+leg,7,5,8);ctx.fillRect(2-leg,7,5,8);
  ctx.fillStyle='#f4c85c';ctx.fillRect(-8,-8,16,17);ctx.fillStyle='#e45a35';ctx.fillRect(-9,-12,18,7);ctx.fillStyle='#69372a';ctx.fillRect(-6,-5,12,8);
