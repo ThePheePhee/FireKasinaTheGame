@@ -6,7 +6,7 @@ export const presentationContent:Record<string,string>={
  booboo:'Those who chase the Mists may sink into these gloomy waters. Old sorrow, confusion, and self-pity pull at your boots. Be kind, get grounded, and find the shore.',
  trauma:'A fearful road beneath the Mists, where wounds from long ago still echo. Walk slowly, seek good allies, and beware the heavy breathing of Darth Vader.',
  chasm:'Here the old map falls into a bottomless dark, and meaning itself seems to collapse. A rickety bridge crosses the gulf—but no hero is promised the far side. Enter at your own risk.',
- inn:'Fellow travellers gather here to argue about the true shape of the landscape instead of exploring it. Warm your feet, enjoy the nonsense, then remember your quest and move on.',
+ inn:'Fellow travellers gather here to argue about the true shape of the landscape instead of exploring it. Yet do not scorn the Inn: this very adventure was kindled by its discussions. Warm your feet, enjoy the nonsense, then remember your quest and move on.',
  fireworks:'The inner sky erupts with stars, colours, patterns, and impossible light! Wonderful—but spectacle is a signpost, brave traveller, not the end of the road.',
  tower:'From this high place, experience reveals how it builds itself moment by moment. Look clearly, and true insight may flash brighter than any firework.',
  jhana:'These peaks hold deep calm, joy, and absorption. Cross the whole range with a steady heart, and a hidden pass may open into the Formless Beyond.',
