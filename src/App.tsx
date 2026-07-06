@@ -15,7 +15,7 @@ import type {MapProp} from './data/mapProps';
 
 type Mode='player'|'presentation';
 type Selection={kind:'region';region:Region}|{kind:'route';route:Route}|{kind:'prop';prop:MapProp}|null;
-const startPlayer:Player={x:800,y:550,direction:'down',moving:false,step:0};
+const startPlayer:Player={x:740,y:500,direction:'down',moving:false,step:0};
 
 export default function App(){
  const [started,setStarted]=useState(false),[mode,setMode]=useState<Mode>('player'),[selection,setSelection]=useState<Selection>(null),[interior,setInterior]=useState<InteriorMap|null>(null),[overview,setOverview]=useState<InteriorMap|null>(null);

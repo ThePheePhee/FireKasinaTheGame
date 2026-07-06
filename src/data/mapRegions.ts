@@ -18,5 +18,5 @@ export const mapRegions:Region[]=[
  {id:'inn',name:'The Quarrelsome Inn',x:500,y:570,shape:{kind:'circle',radius:95},terrain:'inn',layer:3},
  {id:'garden',name:'The Garden',x:800,y:550,shape:{kind:'circle',radius:155},terrain:'garden',layer:4},
  {id:'red-dot',name:'Red Dot Range',x:920,y:510,shape:{kind:'circle',radius:65},terrain:'range',layer:5},
- {id:'house',name:'Your House',x:800,y:550,shape:{kind:'circle',radius:45},terrain:'home',layer:6}
+ {id:'house',name:'Your House',x:740,y:500,shape:{kind:'circle',radius:52},terrain:'home',layer:6}
 ];
