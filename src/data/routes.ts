@@ -16,5 +16,6 @@ export const routes:Route[]=[
  {id:'healers-light',name:"The Healer's Light",family:'connection',kind:'bridge',points:[[650,95],[1040,95],[1415,155]],labelAt:[1215,55]},
  {id:'siddhi',name:'The Siddhi Pass',family:'connection',kind:'rail',points:[[430,940],[260,800],[175,620],[300,420],[470,260],[650,95]],labelAt:[330,455]},
  {id:'contemplative',name:'The Contemplative Loop',family:'connection',kind:'rail',points:[[430,940],[250,800],[175,620]],labelAt:[265,820]},
- {id:'return',name:'The Gentle Return',family:'connection',kind:'rail',points:[[1040,95],[1080,250],[1120,565],[760,790],[430,940]],labelAt:[820,760]}
+ {id:'return',name:'The Gentle Return',family:'connection',kind:'rail',points:[[1040,95],[1080,250],[1120,565],[760,790],[430,940]],labelAt:[820,760]},
+ {id:'reappearance',name:'The Road of Splendid Reappearance',family:'generation',kind:'bridge',points:[[1480,970],[1530,790],[1515,590],[1490,370],[1415,155]],labelAt:[1435,520]}
 ];
