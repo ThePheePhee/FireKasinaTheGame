@@ -13,6 +13,8 @@ export const presentationContent:Record<string,string>={
  formless:'Here the map can no longer contain the territory: infinite space, infinite consciousness, nothingness, and subtler arūpa jhānas wait beyond ordinary shape.',
  healing:'Here the art of mending flows both inward and outward. Rest and restore yourself, then explore practices of energy, intuition, and compassionate healing for fellow travellers. A steady healer keeps discernment close.',
  'life-recall':'Along this half-misty lane, memories may arrive with astonishing clarity and no appointment. Review what appears, sort what can be integrated, and—if the road wanders beyond this lifetime—pack curiosity beside discernment.',
+ 'counterfeit-crags':'At last—the mist is gone! Every ridge looks sharp, every sign agrees, and the whole bewildering country suddenly makes perfect sense. How fortunate. How complete. How very suspicious. Counterfeit clarity feels clearest precisely because it cannot yet see its own blind spots.',
+ 'credulous-circuit':'Soon the mist gathers again. Rather than question the shining view, the traveller races this circuit to win it back: more effort, another breakthrough, another lap—and behold, the Crags again! A loop may feel like progress when every return is mistaken for a summit.',
  celestial:'Luminous beings, gods, and mysterious entities are said to gather here. Meet every presence with compassion, discernment, and both feet on the ground.',
  magical:'Beyond the Fireworks, wonder becomes craft. In these proving grounds, intention and perception behave strangely. Test what you find, keep your ethics close, and never mistake magick for certainty.'
 };

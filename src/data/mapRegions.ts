@@ -1,4 +1,4 @@
-export type TerrainType = 'home'|'garden'|'range'|'mist'|'lagoon'|'tunnel'|'chasm'|'inn'|'peak'|'tower'|'hills'|'void'|'meadow'|'celestial'|'magical'|'memory';
+export type TerrainType = 'home'|'garden'|'range'|'mist'|'lagoon'|'tunnel'|'chasm'|'inn'|'peak'|'tower'|'hills'|'void'|'meadow'|'celestial'|'magical'|'memory'|'false-clarity'|'circuit';
 export type RegionShape={kind:'circle';radius:number}|{kind:'polygon';points:[number,number][]};
 export interface Region { id:string; name:string; x:number; y:number; shape:RegionShape; terrain:TerrainType; layer:number; }
 export const WORLD={width:1600,height:1100};
@@ -12,6 +12,8 @@ export const mapRegions:Region[]=[
  {id:'jhana',name:'Jhana Range',x:430,y:940,shape:{kind:'circle',radius:145},terrain:'hills',layer:2},
  {id:'formless',name:'The Formless Beyond',x:1480,y:970,shape:{kind:'circle',radius:145},terrain:'void',layer:2},
  {id:'life-recall',name:'Life Recall Lane',x:1080,y:250,shape:{kind:'circle',radius:105},terrain:'memory',layer:3},
+ {id:'counterfeit-crags',name:'The Crags of Counterfeit Clarity',x:850,y:320,shape:{kind:'circle',radius:70},terrain:'false-clarity',layer:3},
+ {id:'credulous-circuit',name:'The Credulous Clarity Circuit',x:975,y:390,shape:{kind:'circle',radius:62},terrain:'circuit',layer:3},
  {id:'trauma',name:'The Trauma Tunnels',x:1120,y:565,shape:{kind:'circle',radius:125},terrain:'tunnel',layer:3},
  {id:'booboo',name:'Boohoo Lagoon',x:650,y:790,shape:{kind:'circle',radius:145},terrain:'lagoon',layer:3},
  {id:'chasm',name:'The Chasm of Despair',x:940,y:760,shape:{kind:'circle',radius:105},terrain:'chasm',layer:3},

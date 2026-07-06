@@ -1,4 +1,4 @@
-export interface RegionVisual {artOffset?:[number,number];artSize?:number;labelOffset?:[number,number]}
+export interface RegionVisual {artOffset?:[number,number];artSize?:number;labelOffset?:[number,number];labelLines?:string[]}
 
 export const regionVisuals:Record<string,RegionVisual>={
  mist:{labelOffset:[-330,-150]},
@@ -13,6 +13,8 @@ export const regionVisuals:Record<string,RegionVisual>={
  tower:{artSize:132,labelOffset:[0,72]},
  healing:{artSize:135,labelOffset:[0,70]},
  'life-recall':{artSize:135,labelOffset:[0,76]},
+ 'counterfeit-crags':{artSize:112,labelOffset:[-18,68],labelLines:['Crags of','Counterfeit Clarity']},
+ 'credulous-circuit':{artSize:102,labelOffset:[25,64],labelLines:['Credulous','Clarity Circuit']},
  jhana:{artSize:160,labelOffset:[0,88]},
  formless:{artSize:165,labelOffset:[0,92]},
  trauma:{artSize:135,labelOffset:[0,72]},

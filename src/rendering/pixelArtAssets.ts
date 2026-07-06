@@ -1,4 +1,4 @@
-type AtlasName='player'|'landmarks'|'terrain'|'expansion'|'special'|'story'|'states'|'recall'|'rupa';
+type AtlasName='player'|'landmarks'|'terrain'|'expansion'|'special'|'story'|'states'|'recall'|'rupa'|'clarity';
 const atlases:Partial<Record<AtlasName,HTMLImageElement>>={};
 const ready=new Set<AtlasName>(),listeners=new Set<()=>void>();
 
@@ -15,9 +15,10 @@ load('story','fire-kasina-story-props.png');
 load('states','recall-awakening-formless.png');
 load('recall','life-recall-environment.png');
 load('rupa','rupa-jhana-canonical.png');
+load('clarity','counterfeit-clarity.png');
 
 export function getAtlas(name:AtlasName){return ready.has(name)?atlases[name]??null:null}
-export function onPixelArtReady(listener:()=>void){listeners.add(listener);if(ready.size===9)queueMicrotask(listener);return()=>{listeners.delete(listener)}}
+export function onPixelArtReady(listener:()=>void){listeners.add(listener);if(ready.size===10)queueMicrotask(listener);return()=>{listeners.delete(listener)}}
 
 export function drawAtlasCell(ctx:CanvasRenderingContext2D,image:HTMLImageElement,column:number,row:number,x:number,y:number,width:number,height=width){
  const cellWidth=image.naturalWidth/4,cellHeight=image.naturalHeight/4;
@@ -32,4 +33,9 @@ export function drawStoryCell(ctx:CanvasRenderingContext2D,image:HTMLImageElemen
 export function drawStateCell(ctx:CanvasRenderingContext2D,image:HTMLImageElement,column:number,row:number,x:number,y:number,size:number){
  const cellWidth=image.naturalWidth/4,cellHeight=image.naturalHeight/3;
  ctx.drawImage(image,column*cellWidth,row*cellHeight,cellWidth,cellHeight,Math.round(x-size/2),Math.round(y-size/2),Math.round(size),Math.round(size));
+}
+
+export function drawClarityCell(ctx:CanvasRenderingContext2D,image:HTMLImageElement,column:number,x:number,y:number,size:number){
+ const cellWidth=image.naturalWidth/2;
+ ctx.drawImage(image,column*cellWidth,0,cellWidth,image.naturalHeight,Math.round(x-size/2),Math.round(y-size/2),Math.round(size),Math.round(size));
 }

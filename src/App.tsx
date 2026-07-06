@@ -19,14 +19,14 @@ const startPlayer:Player={x:740,y:500,direction:'down',moving:false,step:0};
 
 export default function App(){
  const [started,setStarted]=useState(false),[mode,setMode]=useState<Mode>('player'),[selection,setSelection]=useState<Selection>(null),[interior,setInterior]=useState<InteriorMap|null>(null),[overview,setOverview]=useState<InteriorMap|null>(null);
- const player=useRef<Player>({...startPlayer});
+ const player=useRef<Player>({...startPlayer}),discoveredRegions=useRef(new Set<string>());
  useEffect(()=>{const close=(event:KeyboardEvent)=>{if(event.key!=='Escape')return;if(overview)setOverview(null);else if(!interior)setSelection(null)};window.addEventListener('keydown',close);return()=>window.removeEventListener('keydown',close)},[interior,overview]);
  const selectRegion=(region:Region|null)=>setSelection(region?{kind:'region',region}:null);
  const region=selection?.kind==='region'?selection.region:null,route=selection?.kind==='route'?selection.route:null,prop=selection?.kind==='prop'?selection.prop:null,lore=route?pathContent[route.id]:null,interiorEntrance=region?getInteriorMap(region.id):undefined;
  if(!started)return <main className="title-screen"><div className="embers"/><section className="title-card"><div className="flame">◆</div><p className="eyebrow">AN INTERACTIVE FIRE KASINA MAP</p><h1>FIRE KASINA <span>is about to have an adventure called</span> YOU</h1><p className="subtitle">Beyond the garden, the wilderness of mind is waiting.</p><p className="provenance">AN ADVENTURE BASED ON DISCUSSION IN THE QUARRELSOME INN OVER X-MAS 2025</p><button onClick={()=>setStarted(true)}>BEGIN THE ADVENTURE</button><small>WASD / ARROW KEYS · TAP TO EXPLORE</small></section></main>;
  return <main className="game">
   {mode==='player'
-   ?<PlayerMode player={player} dialogue={!!selection} onDiscover={selectRegion} onDiscoverProp={prop=>setSelection({kind:'prop',prop})}/>
+   ?<PlayerMode player={player} dialogue={!!selection} discoveredRegions={discoveredRegions} onDiscover={selectRegion} onDiscoverProp={prop=>setSelection({kind:'prop',prop})}/>
    :<MapMode onSelectRegion={region=>setSelection({kind:'region',region})} onSelectRoute={route=>setSelection({kind:'route',route})} onSelectProp={prop=>setSelection({kind:'prop',prop})} onClear={()=>setSelection(null)}/>
   }
   <header><div><b>FIRE KASINA</b><span>THE MAP OF YOU</span></div><nav aria-label="Game mode"><button className={mode==='player'?'active':''} onClick={()=>{setMode('player');setSelection(null)}}>♟ PLAYER</button><button className={mode==='presentation'?'active':''} onClick={()=>{setMode('presentation');setSelection(null)}}>⌖ MAP</button></nav></header>

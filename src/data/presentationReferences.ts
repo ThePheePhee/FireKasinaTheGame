@@ -20,6 +20,8 @@ export const presentationReferences:Partial<Record<string,LoreReference[]>>={
  formless:[{label:'The Fire Kasina Book',url:book}],
  healing:[{label:'Grounding the Journey',url:safety}],
  'life-recall':[{label:'Memory & Integration',url:'https://firekasina.org/wp-content/uploads/2017/11/the-fire-kasina.pdf'}],
+ 'counterfeit-crags':[{label:'Expectations & Comparison',url:safety}],
+ 'credulous-circuit':[{label:'Expectations & Comparison',url:safety}],
  celestial:[{label:'Fourth Screen & Entities',url:glossary}],
  magical:[{label:'Magickal Realms',url:glossary}],
 };
