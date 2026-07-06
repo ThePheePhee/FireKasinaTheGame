@@ -1,4 +1,4 @@
-type AtlasName='player'|'landmarks'|'terrain'|'expansion'|'special'|'story'|'states'|'recall';
+type AtlasName='player'|'landmarks'|'terrain'|'expansion'|'special'|'story'|'states'|'recall'|'rupa';
 const atlases:Partial<Record<AtlasName,HTMLImageElement>>={};
 const ready=new Set<AtlasName>(),listeners=new Set<()=>void>();
 
@@ -14,9 +14,10 @@ load('special','healing-jhana-landmarks.png');
 load('story','fire-kasina-story-props.png');
 load('states','recall-awakening-formless.png');
 load('recall','life-recall-environment.png');
+load('rupa','rupa-jhana-canonical.png');
 
 export function getAtlas(name:AtlasName){return ready.has(name)?atlases[name]??null:null}
-export function onPixelArtReady(listener:()=>void){listeners.add(listener);if(ready.size===8)queueMicrotask(listener);return()=>{listeners.delete(listener)}}
+export function onPixelArtReady(listener:()=>void){listeners.add(listener);if(ready.size===9)queueMicrotask(listener);return()=>{listeners.delete(listener)}}
 
 export function drawAtlasCell(ctx:CanvasRenderingContext2D,image:HTMLImageElement,column:number,row:number,x:number,y:number,width:number,height=width){
  const cellWidth=image.naturalWidth/4,cellHeight=image.naturalHeight/4;

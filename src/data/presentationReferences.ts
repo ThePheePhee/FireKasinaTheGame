@@ -16,7 +16,7 @@ export const presentationReferences:Partial<Record<string,LoreReference[]>>={
  inn:[{label:'Patience, Faith & Curiosity',url:glossary}],
  fireworks:[{label:'Fire & Flares',url:glossary}],
  tower:[{label:'Insight & Awakening',url:site}],
- jhana:[{label:'Jhāna & Concentration',url:book}],
+ jhana:[{label:'Canonical Jhāna Similes · DN 2',url:'https://www.accesstoinsight.org/ati/tipitaka/dn/dn.02.0.than.html'},{label:'Jhāna & Concentration',url:book}],
  formless:[{label:'The Fire Kasina Book',url:book}],
  healing:[{label:'Grounding the Journey',url:safety}],
  'life-recall':[{label:'Memory & Integration',url:'https://firekasina.org/wp-content/uploads/2017/11/the-fire-kasina.pdf'}],

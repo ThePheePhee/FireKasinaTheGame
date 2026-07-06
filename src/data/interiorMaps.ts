@@ -1,6 +1,6 @@
 export type InteriorTheme='tower'|'fireworks'|'magick'|'jhana'|'divine'|'formless'|'healing'|'recall';
 export type InteriorShape='circle'|'rect';
-export interface InteriorZone {id:string;name:string;copy:string;x:number;y:number;w:number;h:number;shape:InteriorShape;art:[number,number];artAtlas?:'special'|'legacy'|'states'}
+export interface InteriorZone {id:string;name:string;copy:string;x:number;y:number;w:number;h:number;shape:InteriorShape;art:[number,number];artAtlas?:'special'|'legacy'|'states'|'rupa'}
 export interface InteriorObstacle {x:number;y:number;w:number;h:number}
 export interface InteriorFloor {id:string;name:string;subtitle:string;width:number;height:number;spawn:[number,number];zones:InteriorZone[];obstacles:InteriorObstacle[]}
 export interface InteriorMap {id:string;regionId:string;name:string;theme:InteriorTheme;floors:InteriorFloor[]}
@@ -58,10 +58,10 @@ export const interiorMaps:InteriorMap[]=[
  ]},
  {id:'jhana-world',regionId:'jhana',name:'Jhana Range',theme:'jhana',floors:[
   floor('rupa','The Four Rūpa Jhānas','A mountain path where each summit grows quieter',[
-   {...zone('j1','First Jhāna','Applied attention, rapture, happiness, and unification.',250,760,[0,4],280,220),artAtlas:'legacy'},
-   {...zone('j2','Second Jhāna','Attention steadies; rapture and happiness remain.',600,560,[1,4],280,220),artAtlas:'legacy'},
-   {...zone('j3','Third Jhāna','Rapture quiets into happiness and equanimity.',1000,360,[2,4],280,220),artAtlas:'legacy'},
-   {...zone('j4','Fourth Jhāna','Deep equanimity and lucid stillness crown the range.',1400,170,[3,4],280,220),artAtlas:'legacy'}
+   {...zone('j1','First Jhāna','Like a skilled bath attendant kneading sprinkled water through bath powder until the whole ball is saturated yet does not drip: directed attention works rapture and pleasure through the entire body.',250,760,[0,0],300,240),artAtlas:'rupa'},
+   {...zone('j2','Second Jhāna','Like a lake with no streams entering it, filled and cooled everywhere by a spring welling from within: thought grows quiet and rapture and pleasure spread effortlessly through unified awareness.',600,560,[1,0],300,240),artAtlas:'rupa'},
+   {...zone('j3','Third Jhāna','Like blue, white, and red lotuses born and grown underwater, saturated by still cool water from roots to tips: rapture fades, while mindful equanimity and bodily pleasure remain.',1000,360,[2,0],300,240),artAtlas:'rupa'},
+   {...zone('j4','Fourth Jhāna','Like a seated person covered head to foot by a white cloth, with no part left uncovered: pleasure and pain fall quiet, and pure bright awareness pervades the whole body.',1400,170,[3,0],300,240),artAtlas:'rupa'}
   ],1700,1100),
   floor('atypical','The Atypical Passes','Custom absorptions branch through hidden caves',grid([
    ['custom','Custom Jhāna Forge','Build absorption around a wholesome stable quality.',[0,1]],['slam','Slam-Shift Switchback','Shift rapidly between insight stages and jhānic factors.',[1,1]],['elements','Elemental Caves','Earth, water, fire, air, colour, and space shape the terrain.',[2,1]],['blends','Blended States','Factors mingle in ways the neat mountain map cannot show.',[3,1]]
