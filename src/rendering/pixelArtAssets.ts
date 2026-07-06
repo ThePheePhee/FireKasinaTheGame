@@ -1,4 +1,4 @@
-type AtlasName='player'|'landmarks'|'terrain'|'expansion'|'special'|'story'|'states'|'recall'|'rupa'|'clarity'|'fairy';
+type AtlasName='player'|'landmarks'|'terrain'|'expansion'|'special'|'story'|'states'|'recall'|'rupa'|'clarity'|'fairy'|'luminous';
 const atlases:Partial<Record<AtlasName,HTMLImageElement>>={};
 const ready=new Set<AtlasName>(),listeners=new Set<()=>void>();
 
@@ -17,9 +17,10 @@ load('recall','life-recall-environment.png');
 load('rupa','rupa-jhana-canonical.png');
 load('clarity','counterfeit-clarity.png');
 load('fairy','fairy-playground-props.png');
+load('luminous','luminous-materials-v2.png');
 
 export function getAtlas(name:AtlasName){return ready.has(name)?atlases[name]??null:null}
-export function onPixelArtReady(listener:()=>void){listeners.add(listener);if(ready.size===11)queueMicrotask(listener);return()=>{listeners.delete(listener)}}
+export function onPixelArtReady(listener:()=>void){listeners.add(listener);if(ready.size===12)queueMicrotask(listener);return()=>{listeners.delete(listener)}}
 
 export function drawAtlasCell(ctx:CanvasRenderingContext2D,image:HTMLImageElement,column:number,row:number,x:number,y:number,width:number,height=width){
  const cellWidth=image.naturalWidth/4,cellHeight=image.naturalHeight/4;

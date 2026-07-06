@@ -1,6 +1,6 @@
 export type InteriorTheme='tower'|'fireworks'|'magick'|'jhana'|'divine'|'formless'|'healing'|'recall';
 export type InteriorShape='circle'|'rect';
-export interface InteriorZone {id:string;name:string;copy:string;x:number;y:number;w:number;h:number;shape:InteriorShape;art:[number,number];artAtlas?:'special'|'legacy'|'states'|'rupa'}
+export interface InteriorZone {id:string;name:string;copy:string;x:number;y:number;w:number;h:number;shape:InteriorShape;art:[number,number];artAtlas?:'special'|'legacy'|'states'|'rupa'|'luminous'}
 export interface InteriorObstacle {x:number;y:number;w:number;h:number}
 export interface InteriorFloor {id:string;name:string;subtitle:string;width:number;height:number;spawn:[number,number];zones:InteriorZone[];obstacles:InteriorObstacle[]}
 export interface InteriorMap {id:string;regionId:string;name:string;theme:InteriorTheme;floors:InteriorFloor[]}
@@ -41,8 +41,13 @@ export const interiorMaps:InteriorMap[]=[
    ['first','First Screen','The dot itself: small, central, non-pixelated, fast-moving, and bound closely to attention.',[0,1]],['second','Second Screen','A wide curved field begins as the Murk, then slowly develops pixelated patterns, drawings, symmetry, and complex structures.',[1,1]],['third','Third Screen','Brief openings reveal volumetric, photorealistic faces, landscapes, scenes, and mysterious realms.',[2,1]],['fourth','Fourth Screen','The image becomes an immersive hyper-real world: no longer something watched, but a realm the traveller inhabits.',[3,1]]
   ],2,450,230,700,390),1800,1200),
   floor('materials','Luminous Materials','Phenomena gather into impossible substances',grid([
-   ['gold','Molten Gold','Golden radiance pours through dark stone channels.',[4,1]],['plastic','The Plastic','Smooth luminous sheets fold and flex.',[0,2]],['tunnels','Tunnels','Spirals create corridors of apparent depth.',[1,2]],['scales','Scale Sheets','Overlapping plates tile the living sky.',[2,2]],['stars','Star Field','Pinpricks of brilliance open an immense night.',[3,2]],['washes','Colour Washes','Tides of colour replace object and edge.',[4,2]]
-  ],3,300,230,500,360),1600,1100)
+   ['gold','Molten Gold','Beautiful, brilliant, and a little jealous, Molten Gold does not yield its secrets to a hurried hand. Learn to court it, follow its rhythm, and dance without trying to own it; the golden river may then carry you toward spectacular country—perhaps even the Plastic.',[0,0]],
+   ['plastic','The Plastic','A versatile, mercurial substance with no loyalty to a single shape. It may become a ribbon, a beast, a vessel, a landscape—or almost anything the luminous field can imagine—then melt cheerfully into something else.',[1,0]],
+   ['tunnels','The Tunnels','These energetic corridors run through the apparent depths of the screen, bending distance as they go. Navigate gently, keep your lantern of attention steady, and wonder: what might be waiting at the far end?', [2,0]],
+   ['scales','Scale Sheets','Vast overlapping scales spread across the screen in iridescent sheets, part armour, part sky, and perhaps the sleeping hide of something too large for the map.',[0,1]],
+   ['stars','Star Field','The darkness opens into a dimensional field of innumerable stars. Near lights, far lights, and impossible depths make a small traveller feel wonderfully—and usefully—small.',[1,1]],
+   ['washes','Colour Washes','Great translucent tides of colour pour across the field. Edges dissolve beneath rose, blue, gold, and green until the whole screen becomes luminous weather.',[2,1]]
+  ],3,300,230,500,360).map(item=>({...item,artAtlas:'luminous' as const})),1600,1100)
  ]},
  {id:'magick-world',regionId:'magical',name:'The Magick Proving Grounds',theme:'magick',floors:[
   floor('grounds','The Practice Grounds','A crooked campus where wonder learns its first responsible tricks',[
