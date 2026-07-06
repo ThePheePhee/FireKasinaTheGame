@@ -1,3 +1,5 @@
 .enter-area{position:static!important;display:block;width:100%;margin:14px 0 10px;padding:11px!important;border:3px solid #ffd064!important;background:#71332c!important;color:#fff0bc!important;font:8px 'Press Start 2P'!important;line-height:1.5!important;cursor:pointer;box-shadow:4px 4px #281820}.enter-area:hover{filter:brightness(1.25);transform:translate(1px,1px)}.path-dialogue.generation{border-color:#ef9946}.path-dialogue.deconstruction{border-color:#a78acb}.path-dialogue.balance{border-color:#71ad8b}.path-dialogue.connection{border-color:#d7c27b}
 .prop-dialogue{border-color:#e9b85d}.prop-dialogue .rule{background:linear-gradient(90deg,transparent,#e9b85d,transparent)}
 .submap-recall{background:#21182a}
+.title-card .provenance{max-width:620px;margin:16px auto;color:#cda97c;font:8px/1.8 'Press Start 2P';letter-spacing:1px}
+@media(max-width:650px){.title-card .provenance{margin:10px auto;font-size:6px;line-height:1.7}}@media(max-height:500px) and (orientation:landscape){.title-card .provenance{margin:5px auto;font-size:5px}}
