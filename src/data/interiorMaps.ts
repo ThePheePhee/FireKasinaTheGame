@@ -45,9 +45,16 @@ export const interiorMaps:InteriorMap[]=[
   ],3,300,230,500,360),1600,1100)
  ]},
  {id:'magick-world',regionId:'magical',name:'The Magick Proving Grounds',theme:'magick',floors:[
-  floor('grounds','The Practice Grounds','A crooked campus where wonder must pass inspection',[
-   zone('summoning','Summoning Circles','Meet personified imagery without granting it automatic authority.',300,260,[0,3],340,260,'circle'),zone('astral','Astral Launchpad','A star platform for experiments in imagined travel.',820,180,[1,3],300,220),zone('divination','Divination Station','Symbols invite reflection, never surrender of judgment.',1330,300,[2,3],300,250),zone('testing','Reality-Testing Chamber','Bring every marvel here before taking it into the world.',1050,700,[3,3],360,240),zone('forge','Intention Forge','Shape attention toward compassion and useful action.',480,720,[4,3],340,230)
-  ],1700,1050)
+  floor('grounds','The Practice Grounds','A crooked campus where wonder learns its first responsible tricks',[
+   zone('summoning','Summoning Circles','Meet personified imagery without granting it automatic authority.',300,620,[0,3],340,260,'circle'),
+   zone('astral','Astral Launchpad','A star platform for experiments in imagined travel.',820,260,[1,3],320,240),
+   zone('divination','Divination Station','Symbols invite reflection, never surrender of judgment.',1390,600,[2,3],320,260)
+  ],1700,1050),
+  floor('laboratory','The Discernment Laboratory','Every enchantment gets a daylight inspection',[
+   zone('testing','Reality-Testing Chamber','Place each marvel on the testing bench. Compare impressions with evidence, trusted companions, and ordinary consequences before declaring a new law of nature.',330,620,[3,3],360,280),
+   zone('forge','The Intention Forge','Shape attention toward compassion and useful action. Power without ethics is merely a cursed item with excellent marketing.',840,280,[4,3],360,280,'circle'),
+   zone('records','The Wonder Ledger','Write predictions before outcomes arrive. Memory is a mischievous wizard; ink keeps it from quietly improving yesterday’s prophecy.',1380,620,[2,3],360,280)
+  ],1750,1050)
  ]},
  {id:'jhana-world',regionId:'jhana',name:'Jhana Range',theme:'jhana',floors:[
   floor('rupa','The Four Rūpa Jhānas','A mountain path where each summit grows quieter',[
