@@ -1,8 +1,9 @@
-export type TerrainType = 'home'|'garden'|'range'|'mist'|'lagoon'|'tunnel'|'chasm'|'inn'|'peak'|'tower'|'hills'|'void'|'meadow'|'celestial'|'magical'|'memory'|'false-clarity'|'circuit';
+export type TerrainType = 'fairy'|'home'|'garden'|'range'|'mist'|'lagoon'|'tunnel'|'chasm'|'inn'|'peak'|'tower'|'hills'|'void'|'meadow'|'celestial'|'magical'|'memory'|'false-clarity'|'circuit';
 export type RegionShape={kind:'circle';radius:number}|{kind:'polygon';points:[number,number][]};
 export interface Region { id:string; name:string; x:number; y:number; shape:RegionShape; terrain:TerrainType; layer:number; }
 export const WORLD={width:1600,height:1100};
 export const mapRegions:Region[]=[
+ {id:'fairy-playground',name:'The Fairy Playground',x:800,y:550,shape:{kind:'polygon',points:[[-800,-550],[800,-550],[800,550],[-800,550]]},terrain:'fairy',layer:0},
  {id:'mist',name:'The Mists of Purification',x:800,y:560,shape:{kind:'polygon',points:[[-520,-280],[-360,-410],[-80,-450],[220,-400],[440,-250],[500,20],[400,290],[120,410],[-190,400],[-430,280],[-520,60]]},terrain:'mist',layer:1},
  {id:'fireworks',name:'Fireworks Peak',x:175,y:120,shape:{kind:'circle',radius:110},terrain:'peak',layer:2},
  {id:'magical',name:'The Magick Proving Grounds',x:650,y:95,shape:{kind:'circle',radius:120},terrain:'magical',layer:2},

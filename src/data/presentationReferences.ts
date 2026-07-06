@@ -6,6 +6,7 @@ const safety='https://firekasina.org/fire-kasina-safety-recommendations/';
 const book='https://firekasina.org/fire-kasina-book/';
 
 export const presentationReferences:Partial<Record<string,LoreReference[]>>={
+ 'fairy-playground':[{label:'The Fire Kasina Journey',url:site},{label:'Grounding & Return',url:safety}],
  house:[{label:'Fire Kasina',url:site}],
  garden:[{label:'Practice Overview',url:site}],
  'red-dot':[{label:'The Dot',url:glossary}],

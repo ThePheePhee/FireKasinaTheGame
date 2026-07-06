@@ -1,4 +1,5 @@
 export const presentationContent:Record<string,string>={
+ 'fairy-playground':'Beyond the Mists lies the Fairy Playground, where every path learned in confusion opens onto a different marvel. What you practised in the grey country decides which bright road answers your feet. But beware: one clear crossing does not forbid the Mists from gathering again. Visit, wonder, and learn—but remember that humans are guests here, not residents. However splendid the revel, the wisest quest eventually leads home.',
  house:'Your adventure begins in the world you know. Rest here, remember who you are, and carry that memory when the wilderness grows strange.',
  garden:'A quiet patch between home and mystery. Here, simple habits take root: sit, look, refresh the flame, and begin again.',
  'red-dot':'Your first training ground! Hold the little red afterimage steady. As attention strengthens, the gate to the wild country will open.',

@@ -1,6 +1,7 @@
 export interface RegionVisual {artOffset?:[number,number];artSize?:number;labelOffset?:[number,number];labelLines?:string[]}
 
 export const regionVisuals:Record<string,RegionVisual>={
+ 'fairy-playground':{labelOffset:[0,515],labelLines:['The Fairy Playground']},
  mist:{labelOffset:[-330,-150]},
  house:{artSize:90,labelOffset:[0,56]},
  garden:{artOffset:[-55,65],artSize:135,labelOffset:[-55,138]},
