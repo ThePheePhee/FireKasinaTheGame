@@ -1,17 +1,18 @@
-export type TerrainType = 'home'|'garden'|'range'|'mist'|'lagoon'|'tunnel'|'chasm'|'inn'|'peak'|'tower'|'hills'|'void'|'meadow'|'celestial'|'magical';
+export type TerrainType = 'home'|'garden'|'range'|'mist'|'lagoon'|'tunnel'|'chasm'|'inn'|'peak'|'tower'|'hills'|'void'|'meadow'|'celestial'|'magical'|'memory';
 export type RegionShape={kind:'circle';radius:number}|{kind:'polygon';points:[number,number][]};
 export interface Region { id:string; name:string; x:number; y:number; shape:RegionShape; terrain:TerrainType; layer:number; }
 export const WORLD={width:1600,height:1100};
 export const mapRegions:Region[]=[
  {id:'mist',name:'The Mists of Purification',x:800,y:560,shape:{kind:'polygon',points:[[-520,-280],[-360,-410],[-80,-450],[220,-400],[440,-250],[500,20],[400,290],[120,410],[-190,400],[-430,280],[-520,60]]},terrain:'mist',layer:1},
- {id:'fireworks',name:'Fireworks Peak',x:280,y:115,shape:{kind:'circle',radius:110},terrain:'peak',layer:2},
- {id:'magical',name:'The Magick Proving Grounds',x:765,y:105,shape:{kind:'circle',radius:120},terrain:'magical',layer:2},
- {id:'celestial',name:'The Divine Abodes',x:1260,y:115,shape:{kind:'circle',radius:135},terrain:'celestial',layer:2},
- {id:'tower',name:'The Tower of Insight',x:300,y:510,shape:{kind:'circle',radius:105},terrain:'tower',layer:2},
- {id:'healing',name:'The Healing Meadows',x:1080,y:320,shape:{kind:'circle',radius:115},terrain:'meadow',layer:2},
- {id:'jhana',name:'Jhana Range',x:1110,y:940,shape:{kind:'circle',radius:145},terrain:'hills',layer:2},
+ {id:'fireworks',name:'Fireworks Peak',x:175,y:120,shape:{kind:'circle',radius:110},terrain:'peak',layer:2},
+ {id:'magical',name:'The Magick Proving Grounds',x:650,y:95,shape:{kind:'circle',radius:120},terrain:'magical',layer:2},
+ {id:'healing',name:'The Healing Meadows',x:1040,y:95,shape:{kind:'circle',radius:115},terrain:'meadow',layer:2},
+ {id:'celestial',name:'The Divine Abodes',x:1415,y:155,shape:{kind:'circle',radius:135},terrain:'celestial',layer:2},
+ {id:'tower',name:'The Tower of Insight',x:175,y:620,shape:{kind:'circle',radius:105},terrain:'tower',layer:2},
+ {id:'jhana',name:'Jhana Range',x:430,y:940,shape:{kind:'circle',radius:145},terrain:'hills',layer:2},
  {id:'formless',name:'The Formless Beyond',x:1480,y:970,shape:{kind:'circle',radius:145},terrain:'void',layer:2},
- {id:'trauma',name:'The Trauma Tunnels',x:1080,y:570,shape:{kind:'circle',radius:125},terrain:'tunnel',layer:3},
+ {id:'life-recall',name:'Life Recall Lane',x:1080,y:250,shape:{kind:'circle',radius:105},terrain:'memory',layer:3},
+ {id:'trauma',name:'The Trauma Tunnels',x:1120,y:565,shape:{kind:'circle',radius:125},terrain:'tunnel',layer:3},
  {id:'booboo',name:'Boohoo Lagoon',x:650,y:790,shape:{kind:'circle',radius:145},terrain:'lagoon',layer:3},
  {id:'chasm',name:'The Chasm of Despair',x:940,y:760,shape:{kind:'circle',radius:105},terrain:'chasm',layer:3},
  {id:'inn',name:'The Quarrelsome Inn',x:500,y:570,shape:{kind:'circle',radius:95},terrain:'inn',layer:3},

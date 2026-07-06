@@ -12,6 +12,7 @@ export const regionVisuals:Record<string,RegionVisual>={
  celestial:{artSize:175,labelOffset:[0,92]},
  tower:{artSize:145,labelOffset:[0,82]},
  healing:{artSize:150,labelOffset:[0,78]},
+ 'life-recall':{artSize:150,labelOffset:[0,86]},
  jhana:{artSize:175,labelOffset:[0,96]},
  formless:{artSize:180,labelOffset:[0,100]},
  trauma:{artSize:150,labelOffset:[0,82]},

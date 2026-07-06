@@ -1,6 +1,6 @@
-export type InteriorTheme='tower'|'fireworks'|'magick'|'jhana'|'divine'|'formless'|'healing';
+export type InteriorTheme='tower'|'fireworks'|'magick'|'jhana'|'divine'|'formless'|'healing'|'recall';
 export type InteriorShape='circle'|'rect';
-export interface InteriorZone {id:string;name:string;copy:string;x:number;y:number;w:number;h:number;shape:InteriorShape;art:[number,number];artAtlas?:'special'|'legacy'}
+export interface InteriorZone {id:string;name:string;copy:string;x:number;y:number;w:number;h:number;shape:InteriorShape;art:[number,number];artAtlas?:'special'|'legacy'|'states'}
 export interface InteriorObstacle {x:number;y:number;w:number;h:number}
 export interface InteriorFloor {id:string;name:string;subtitle:string;width:number;height:number;spawn:[number,number];zones:InteriorZone[];obstacles:InteriorObstacle[]}
 export interface InteriorMap {id:string;regionId:string;name:string;theme:InteriorTheme;floors:InteriorFloor[]}
@@ -17,6 +17,14 @@ const insightStages:Array<[string,string,string,[number,number]]>=[
  ['deliverance','Desire for Deliverance','A narrow doorway appears, marked simply: OUT.',[1,0]],['reobservation','Re-observation','All the difficult rooms return together. Keep walking gently.',[1,0]],['equanimity','Equanimity','The floor opens wide; phenomena come and go without a quarrel.',[3,0]],['conformity','Conformity','Attention aligns with the path like tumblers in a lock.',[3,0]],
  ['change-lineage','Change of Lineage','One last threshold separates the familiar from the uncharted.',[3,0]],['path','Path','A single decisive step cuts through the old circuit.',[4,0]],['fruition','Fruition','The map blanks for a moment; afterward, the world resumes.',[4,0]],['review','Review','At the final balcony, retrace what happened without decorating it.',[4,0]]
 ];
+
+const lifeRecallMap:InteriorMap={id:'life-recall-world',regionId:'life-recall',name:'Life Recall Lane',theme:'recall',floors:[
+ floor('memory-lane','The Three Turns of Memory Lane','A half-misty road where memory becomes unusually bright—and asks what you will do with it',[
+  {...zone('life-review','Life Review','Memories arrive without knocking: a school corridor, a forgotten kindness, the exact light in an old kitchen. Look clearly, but do not demand that every vivid visitor be a perfect recording.',320,650,[1,0],330,270,'circle'),artAtlas:'states'},
+  {...zone('integration-work','Integration Work','Concentration steadies the lamp while reactivity lowers its voice. Sort the useful threads, make amends where appropriate, and put the old boxes somewhere they no longer block the stairs.',820,310,[2,0],360,290),artAtlas:'states'},
+  {...zone('past-life-tour','Past Life Tour','The lane wanders beyond the sign marked BIRTH. Traditions call these past-life memories; the wise traveler carries curiosity, uncertainty, and no need to turn every costume into a passport.',1380,620,[3,0],350,280,'circle'),artAtlas:'states'}
+ ],1750,1050)
+]};
 
 export const interiorMaps:InteriorMap[]=[
  {id:'insight-tower-world',regionId:'tower',name:'The Tower of Insight',theme:'tower',floors:[
@@ -60,6 +68,7 @@ export const interiorMaps:InteriorMap[]=[
    specialZone('intuitive-healing','Intuitive Healing','Listen for quiet pattern-recognition in body, image, relationship, and circumstance; then check intuition against evidence, ethics, and the person before you.',1400,650,[3,0],300,260)
   ],1700,1050)
  ]},
+ lifeRecallMap,
  {id:'divine-world',regionId:'celestial',name:'The Divine Abodes',theme:'divine',floors:[
   floor('brahmaviharas','The Four Immeasurables','Four gardens make a celestial compass',[
    zone('metta','Loving-Kindness Garden','May beings be well: warmth radiates without demand.',300,300,[3,3],320,280,'circle'),zone('karuna','Compassion Springs','Suffering is met by the wish to help.',1300,300,[3,3],320,280,'circle'),zone('mudita','Sympathetic Joy Arcade','Another being’s good fortune becomes shared treasure.',300,750,[4,3],320,280,'circle'),zone('upekkha','Equanimity Pavilion','Care remains steady while beings inherit their choices.',1300,750,[4,3],320,280,'circle'),zone('court','The Celestial Court','Gods and luminous visitors gather; courtesy and discernment share the throne.',800,510,[4,3],360,300)
@@ -71,5 +80,22 @@ export const interiorMaps:InteriorMap[]=[
   ],1800,1050)
  ]}
 ];
+
+const awakeningStateData:Record<string,{art:[number,number];copy:string}>={
+ stream:{art:[0,1],copy:'Three old chains break at the river gate: personality belief, skeptical doubt, and dependence on rites as ends in themselves. The current is entered; the whole journey is not finished.'},
+ once:{art:[1,1],copy:'The road circles the world once more. Attraction and aversion have lost much of their pull, though the traveller still has integration work and ordinary life to live.'},
+ nonreturn:{art:[2,1],copy:'The one-way lotus gate marks the traditional claim that sense-desire and ill will no longer bind the traveller. Keep humility beside every map.'},
+ arahant:{art:[3,1],copy:'The center-knot is pictured as fully untied and the remaining fetters released. The wheel is open, not a superhero badge; life, ethics, growth, and laundry continue.'}
+};
+const formlessStateData:Record<string,{art:[number,number];copy:string}>={
+ space:{art:[0,2],copy:'The borders fall outward until no edge answers back. Space itself—not the stars within it—becomes the immeasurable theme.'},
+ consciousness:{art:[1,2],copy:'Attention notices that the knowing of boundless space also seems boundless: a luminous field recognizing no shore.'},
+ nothingness:{art:[2,2],copy:'Even the vast field is released. “There is nothing” becomes the quiet, peculiar territory—not a gloomy hole, but absence foregrounded.'},
+ neither:{art:[3,2],copy:'Perception grows too subtle to call present and too present to call absent. The final threshold declines to explain itself.'}
+};
+for(const map of interiorMaps)for(const stage of map.floors.flatMap(item=>item.zones)){
+ const data=awakeningStateData[stage.id]??formlessStateData[stage.id];
+ if(data){stage.art=data.art;stage.copy=data.copy;stage.artAtlas='states'}
+}
 
 export const getInteriorMap=(regionId:string)=>interiorMaps.find(map=>map.regionId===regionId);
