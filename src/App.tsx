@@ -1,5 +1,5 @@
 import {useCallback,useEffect,useRef,useState} from 'react';
-import type {Region} from './data/mapRegions';
+import {mapRegions,type Region} from './data/mapRegions';
 import type {Route} from './data/routes';
 import {pathContent} from './data/pathContent';
 import {presentationContent} from './data/presentationContent';
@@ -20,7 +20,8 @@ import type {MapProp} from './data/mapProps';
 type Experience='game'|'sandbox';
 type SandboxView='player'|'presentation';
 type Selection={kind:'region';region:Region}|{kind:'route';route:Route}|{kind:'prop';prop:MapProp}|null;
-const startPlayer:Player={x:740,y:500,direction:'down',moving:false,step:0};
+const startingHouse=mapRegions.find(region=>region.id==='house')!;
+const startPlayer:Player={x:startingHouse.x,y:startingHouse.y,direction:'down',moving:false,step:0};
 
 export default function App(){
  const [experience,setExperience]=useState<Experience|null>(null),[sandboxView,setSandboxView]=useState<SandboxView>('player'),[selection,setSelection]=useState<Selection>(null),[interior,setInterior]=useState<InteriorMap|null>(null),[overview,setOverview]=useState<InteriorMap|null>(null),[gameStats,setGameStats]=useState<GameStats>(initialGameStats),[practicing,setPracticing]=useState(false),[traumaGame,setTraumaGame]=useState(false);

@@ -1,4 +1,4 @@
-type AtlasName='player'|'landmarks'|'terrain'|'expansion'|'special'|'story'|'states'|'recall'|'rupa'|'clarity'|'fairy'|'luminous'|'divine';
+type AtlasName='player'|'landmarks'|'terrain'|'expansion'|'special'|'story'|'states'|'recall'|'rupa'|'clarity'|'fairy'|'luminous'|'divine'|'settlements';
 const atlases:Partial<Record<AtlasName,HTMLImageElement>>={};
 const ready=new Set<AtlasName>(),listeners=new Set<()=>void>();
 
@@ -19,9 +19,10 @@ load('clarity','counterfeit-clarity.png');
 load('fairy','fairy-playground-props.png');
 load('luminous','luminous-materials-v2.png');
 load('divine','divine-abodes-v2.png');
+load('settlements','library-tavern-v1.png');
 
 export function getAtlas(name:AtlasName){return ready.has(name)?atlases[name]??null:null}
-export function onPixelArtReady(listener:()=>void){listeners.add(listener);if(ready.size===13)queueMicrotask(listener);return()=>{listeners.delete(listener)}}
+export function onPixelArtReady(listener:()=>void){listeners.add(listener);if(ready.size===14)queueMicrotask(listener);return()=>{listeners.delete(listener)}}
 
 export function drawAtlasCell(ctx:CanvasRenderingContext2D,image:HTMLImageElement,column:number,row:number,x:number,y:number,width:number,height=width){
  const cellWidth=image.naturalWidth/4,cellHeight=image.naturalHeight/4;
@@ -45,5 +46,10 @@ export function drawClarityCell(ctx:CanvasRenderingContext2D,image:HTMLImageElem
 
 export function drawFairyCell(ctx:CanvasRenderingContext2D,image:HTMLImageElement,column:number,row:number,x:number,y:number,size:number){
  const cellWidth=image.naturalWidth/4,cellHeight=image.naturalHeight/2;
+ ctx.drawImage(image,column*cellWidth,row*cellHeight,cellWidth,cellHeight,Math.round(x-size/2),Math.round(y-size/2),Math.round(size),Math.round(size));
+}
+
+export function drawSettlementCell(ctx:CanvasRenderingContext2D,image:HTMLImageElement,column:number,row:number,x:number,y:number,size:number){
+ const cellWidth=image.naturalWidth/5,cellHeight=image.naturalHeight/4;
  ctx.drawImage(image,column*cellWidth,row*cellHeight,cellWidth,cellHeight,Math.round(x-size/2),Math.round(y-size/2),Math.round(size),Math.round(size));
 }

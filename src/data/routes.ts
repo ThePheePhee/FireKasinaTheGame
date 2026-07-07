@@ -2,7 +2,7 @@ export type RouteKind='rail'|'tram'|'tunnel'|'bridge';
 export type RouteFamily='generation'|'deconstruction'|'balance'|'connection';
 export interface Route {id:string;name:string;family:RouteFamily;kind:RouteKind;points:[number,number][];labelAt:[number,number];}
 
-export const routes:Route[]=[
+const baseRoutes:Route[]=[
  {id:'kindling',name:'The Kindling Road',family:'generation',kind:'tram',points:[[500,570],[380,330],[175,120]],labelAt:[340,285]},
  {id:'artificer',name:"The Artificer's Causeway",family:'generation',kind:'bridge',points:[[175,120],[400,55],[650,95]],labelAt:[400,48]},
  {id:'ascent',name:'The Luminous Ascent',family:'generation',kind:'rail',points:[[650,95],[1040,95],[1415,155]],labelAt:[835,48]},
@@ -18,5 +18,9 @@ export const routes:Route[]=[
  {id:'contemplative',name:'The Contemplative Loop',family:'connection',kind:'rail',points:[[430,940],[250,800],[175,620]],labelAt:[265,820]},
  {id:'return',name:'The Gentle Return',family:'connection',kind:'rail',points:[[1040,95],[1080,250],[1120,565],[760,790],[430,940]],labelAt:[820,760]},
  {id:'reappearance',name:'The Road of Splendid Reappearance',family:'generation',kind:'bridge',points:[[1480,970],[1530,790],[1515,590],[1490,370],[1415,155]],labelAt:[1435,520]},
- {id:'credulous-loop',name:'The Credulous Clarity Circuit',family:'connection',kind:'rail',points:[[850,320],[920,335],[975,390],[1015,420],[970,440],[900,415],[835,375],[850,320]],labelAt:[900,205]}
+ {id:'credulous-loop',name:'The Credulous Clarity Circuit',family:'connection',kind:'rail',points:[[850,320],[920,335],[975,390],[1015,420],[970,440],[900,415],[835,375],[850,320]],labelAt:[900,205]},
+ {id:'library-lane',name:'The Lantern Lane',family:'connection',kind:'tram',points:[[740,500],[700,470],[650,450]],labelAt:[690,430]},
+ {id:'fortification-road',name:'The Fortification Road',family:'balance',kind:'tram',points:[[920,510],[970,480],[1030,450]],labelAt:[1010,420]}
 ];
+export const routes:Route[]=baseRoutes.map(route=>({...route,points:route.points.map(expandPoint),labelAt:expandPoint(route.labelAt)}));
+import {expandPoint} from './mapScale';

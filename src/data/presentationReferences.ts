@@ -9,6 +9,7 @@ export const presentationReferences:Partial<Record<string,LoreReference[]>>={
  'fairy-playground':[{label:'The Fire Kasina Journey',url:site},{label:'Grounding & Return',url:safety}],
  house:[{label:'Fire Kasina',url:site}],
  garden:[{label:'Practice Overview',url:site}],
+ library:[{label:'Fire Kasina',url:'https://firekasina.org/'},{label:'Mastering the Core Teachings of the Buddha',url:'https://www.mctb.org/'},{label:'Keep Silence',url:'https://keepsilence.org/'}],
  'red-dot':[{label:'The Dot',url:glossary}],
  mist:[{label:'The Murk',url:glossary}],
  booboo:[{label:'Grounding & Safety',url:safety}],

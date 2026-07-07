@@ -16,7 +16,7 @@ export default function SubMap({map,onExit}:{map:InteriorMap;onExit:()=>void}){
   <div className="submap-header"><button type="button" onClick={onExit}>← MAIN MAP</button><div><small>AREA MAP</small><h1>{map.name}</h1></div><span>{floorIndex+1}/{map.floors.length}</span></div>
   <nav className="floor-tabs" aria-label="Area levels">{map.floors.map((item,index)=><button type="button" key={item.id} className={index===floorIndex?'active':''} onClick={()=>{setFloorIndex(index);setSelected(null)}}>{item.name}</button>)}</nav>
   <div ref={containerRef} className="submap-map"><canvas ref={canvasRef}/><div className="submap-zone-layer">{floor.zones.map(zone=><button type="button" key={zone.id} aria-label={`Open ${zone.name}`} title={zone.name} className={selected?.id===zone.id?'active':''} style={{left:layout.left+zone.x*layout.scale,top:layout.top+zone.y*layout.scale,width:Math.max(42,zone.w*layout.scale),height:Math.max(42,zone.h*layout.scale)}} onClick={()=>setSelected(zone)}/>)}</div></div>
-  {selected&&<aside className="submap-lore" role="dialog" aria-label={selected.name}><button type="button" onClick={()=>setSelected(null)} aria-label="Close lore">×</button><p>MAP LORE</p><h2>{selected.name}</h2><div/><span>◆ {selected.copy}</span></aside>}
+  {selected&&<aside className="submap-lore" role="dialog" aria-label={selected.name}><button type="button" onClick={()=>setSelected(null)} aria-label="Close lore">×</button><p>MAP LORE</p><h2>{selected.name}</h2><div/><span>◆ {selected.copy}</span>{selected.reference&&<a href={selected.reference.url} target="_blank" rel="noreferrer">{selected.reference.label} ↗</a>}</aside>}
   <button type="button" className="submap-exit" onClick={onExit}>← MAIN MAP</button>
  </section>
 }

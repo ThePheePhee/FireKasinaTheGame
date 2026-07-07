@@ -1,8 +1,9 @@
+import {expandOffset,expandPoint,WORLD} from './mapScale';
+export {WORLD} from './mapScale';
 export type TerrainType = 'fairy'|'home'|'garden'|'range'|'mist'|'lagoon'|'tunnel'|'chasm'|'inn'|'peak'|'tower'|'hills'|'void'|'meadow'|'celestial'|'magical'|'memory'|'false-clarity'|'circuit';
 export type RegionShape={kind:'circle';radius:number}|{kind:'polygon';points:[number,number][]};
 export interface Region { id:string; name:string; x:number; y:number; shape:RegionShape; terrain:TerrainType; layer:number; }
-export const WORLD={width:1600,height:1100};
-export const mapRegions:Region[]=[
+const baseRegions:Region[]=[
  {id:'fairy-playground',name:'The Fairy Playground',x:800,y:550,shape:{kind:'polygon',points:[[-800,-550],[800,-550],[800,550],[-800,550]]},terrain:'fairy',layer:0},
  {id:'mist',name:'The Mists of Purification',x:800,y:560,shape:{kind:'polygon',points:[[-520,-280],[-360,-410],[-80,-450],[220,-400],[440,-250],[500,20],[400,290],[120,410],[-190,400],[-430,280],[-520,60]]},terrain:'mist',layer:1},
  {id:'fireworks',name:'Fireworks Peak',x:175,y:120,shape:{kind:'circle',radius:110},terrain:'peak',layer:2},
@@ -19,7 +20,10 @@ export const mapRegions:Region[]=[
  {id:'booboo',name:'Boohoo Lagoon',x:650,y:790,shape:{kind:'circle',radius:145},terrain:'lagoon',layer:3},
  {id:'chasm',name:'The Chasm of Despair',x:940,y:760,shape:{kind:'circle',radius:105},terrain:'chasm',layer:3},
  {id:'inn',name:'The Quarrelsome Inn',x:500,y:570,shape:{kind:'circle',radius:95},terrain:'inn',layer:3},
+ {id:'library',name:'The Lantern Library',x:650,y:450,shape:{kind:'circle',radius:45},terrain:'home',layer:4},
+ {id:'fortification-tavern',name:'The Tavern of Fortification',x:1030,y:450,shape:{kind:'circle',radius:45},terrain:'inn',layer:4},
  {id:'garden',name:'The Garden',x:800,y:550,shape:{kind:'circle',radius:155},terrain:'garden',layer:4},
  {id:'red-dot',name:'Red Dot Range',x:920,y:510,shape:{kind:'circle',radius:65},terrain:'range',layer:5},
  {id:'house',name:'Your House',x:740,y:500,shape:{kind:'circle',radius:52},terrain:'home',layer:6}
 ];
+export const mapRegions:Region[]=baseRegions.map(region=>{const [x,y]=expandPoint([region.x,region.y]);if(region.id==='fairy-playground')return{...region,x:WORLD.width/2,y:WORLD.height/2,shape:{kind:'polygon',points:[[-WORLD.width/2,-WORLD.height/2],[WORLD.width/2,-WORLD.height/2],[WORLD.width/2,WORLD.height/2],[-WORLD.width/2,WORLD.height/2]]}};return{...region,x,y,shape:region.shape.kind==='polygon'?{kind:'polygon',points:region.shape.points.map(expandOffset)}:region.shape}});

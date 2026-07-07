@@ -1,6 +1,6 @@
-export type InteriorTheme='tower'|'fireworks'|'magick'|'jhana'|'divine'|'formless'|'healing'|'recall';
+export type InteriorTheme='tower'|'fireworks'|'magick'|'jhana'|'divine'|'formless'|'healing'|'recall'|'tavern';
 export type InteriorShape='circle'|'rect';
-export interface InteriorZone {id:string;name:string;copy:string;x:number;y:number;w:number;h:number;shape:InteriorShape;art:[number,number];artAtlas?:'special'|'legacy'|'states'|'rupa'|'luminous'|'divine'}
+export interface InteriorZone {id:string;name:string;copy:string;x:number;y:number;w:number;h:number;shape:InteriorShape;art:[number,number];artAtlas?:'special'|'legacy'|'states'|'rupa'|'luminous'|'divine'|'settlements';reference?:{label:string;url:string}}
 export interface InteriorObstacle {x:number;y:number;w:number;h:number}
 export interface InteriorFloor {id:string;name:string;subtitle:string;width:number;height:number;spawn:[number,number];zones:InteriorZone[];obstacles:InteriorObstacle[]}
 export interface InteriorMap {id:string;regionId:string;name:string;theme:InteriorTheme;floors:InteriorFloor[]}
@@ -61,6 +61,14 @@ export const interiorMaps:InteriorMap[]=[
    zone('records','The Wonder Ledger','Write predictions before outcomes arrive. Memory is a mischievous wizard; ink keeps it from quietly improving yesterday’s prophecy.',1380,620,[2,3],360,280)
   ],1750,1050)
  ]},
+ {id:'fortification-tavern-world',regionId:'fortification-tavern',name:'The Tavern of Fortification',theme:'tavern',floors:[
+  floor('common-room','The Fortified Common Room','Warm food, sturdy walls, and fellow travelers comparing their maps',[
+   {...zone('hearth','The Fortifying Hearth','The fire is ordinary, the stew is warm, and nobody needs to achieve anything before supper. Rest here before deciding which road deserves your boots.',800,250,[2,0],340,250),artAtlas:'settlements'},
+   {...zone('mapmaker','Mara the Mapmaker','The great map has three broad movements: practice begins near home, the Mists contain unstable encounters, and the Fairy Playground holds destinations shaped by what you learned inside. Roads show affinities, not compulsory sequences.',320,650,[0,1],330,270,'circle'),artAtlas:'settlements'},
+   {...zone('practitioner','Suri of the Small Flame','Concentration is your travel strength. The Red Dot Range restores it; the Mists spend it. Clarity comes from meeting difficult territory directly, and both qualities are needed to cross into the Fairy Playground.',820,690,[1,1],340,270,'circle'),artAtlas:'settlements'},
+   {...zone('innkeeper','Auntie Moss, Innkeeper','If the landscape becomes too grand, return to the house, garden, library, or tavern. A map is useful only when it helps a traveler come home with better stories and steadier feet.',1320,650,[2,1],340,270,'circle'),artAtlas:'settlements'}
+  ],1650,1050)
+ ]},
  {id:'jhana-world',regionId:'jhana',name:'Jhana Range',theme:'jhana',floors:[
   floor('rupa','The Four Rūpa Jhānas','A mountain path where each summit grows quieter',[
    {...zone('j1','First Jhāna','Like a skilled bath attendant kneading sprinkled water through bath powder until the whole ball is saturated yet does not drip: directed attention works rapture and pleasure through the entire body.',250,760,[0,0],300,240),artAtlas:'rupa'},
@@ -103,6 +111,9 @@ const awakeningStateData:Record<string,{art:[number,number];copy:string}>={
  nonreturn:{art:[2,1],copy:'The one-way lotus gate marks the traditional claim that sense-desire and ill will no longer bind the traveller. Keep humility beside every map.'},
  arahant:{art:[3,1],copy:'The center-knot is pictured as fully untied and the remaining fetters released. The wheel is open, not a superhero badge; life, ethics, growth, and laundry continue.'}
 };
+const secondScreen=interiorMaps.find(map=>map.regionId==='fireworks')?.floors.find(floor=>floor.id==='screens')?.zones.find(stage=>stage.id==='second');
+if(secondScreen)secondScreen.reference={label:'Explore the Second Screen replication',url:'https://visual-static-screen-fk-replication.tiiny.site'};
+
 const formlessStateData:Record<string,{art:[number,number];copy:string}>={
  space:{art:[0,2],copy:'The borders fall outward until no edge answers back. Space itself—not the stars within it—becomes the immeasurable theme.'},
  consciousness:{art:[1,2],copy:'Attention notices that the knowing of boundless space also seems boundless: a luminous field recognizing no shore.'},

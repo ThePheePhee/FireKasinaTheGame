@@ -20,11 +20,15 @@ export const regionVisuals:Record<string,RegionVisual>={
  formless:{artSize:165,labelOffset:[0,92]},
  trauma:{artSize:135,labelOffset:[0,72]},
  booboo:{artSize:155,labelOffset:[0,86]},
+ library:{artSize:115,labelOffset:[0,62],labelLines:['The Lantern','Library']},
+ 'fortification-tavern':{artSize:118,labelOffset:[0,64],labelLines:['Tavern of','Fortification']},
 };
 
-export const mistWisps:[number,number,number][]=[
+const baseMistWisps:[number,number,number][]=[
  [385,390,105],
  [1000,285,95],
  [1235,385,100],
  [1170,760,95],
 ];
+export const mistWisps:[number,number,number][]=baseMistWisps.map(([x,y,size])=>{const [nextX,nextY]=expandPoint([x,y]);return[nextX,nextY,size]});
+import {expandPoint} from './mapScale';
