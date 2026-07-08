@@ -1,0 +1,8 @@
+.argument-stage{display:grid;grid-template-columns:260px minmax(0,650px);align-items:center;gap:20px;width:min(950px,95vw)}
+.debater-portrait{width:260px;height:340px;background-image:url('/FireKasinaTheGame/assets/quarrelsome-debaters-v1.png');background-size:500% 100%;background-repeat:no-repeat;background-position-y:center;filter:drop-shadow(8px 10px 0 #090810)}
+.argument-stage .argument-box{width:100%}
+.argument-box button{position:relative}
+.argument-box button:disabled{opacity:.38;filter:grayscale(.7);cursor:not-allowed}
+.argument-box button em{display:block;margin-top:5px;color:#d69291;font:5px 'Press Start 2P';font-style:normal}
+.argument-box footer{color:#c8b58c;font:6px 'Press Start 2P';line-height:1.5}
+@media(max-width:700px){.argument-stage{grid-template-columns:105px minmax(0,1fr);gap:7px;width:98vw}.debater-portrait{width:105px;height:170px}.argument-box small,.argument-box footer{font-size:5px}}
