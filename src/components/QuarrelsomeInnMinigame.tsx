@@ -1,0 +1,18 @@
+import {useState} from 'react';
+import {clampMeter,type GameStats} from '../game/gameState';
+import {innDebaters,type DialogueEffect,type DialogueNode,type PracticeKey} from '../data/quarrelsomeConversations';
+import './QuarrelsomeDialogues.css';
+import './QuarrelsomeInnMinigame.css';
+
+type Totals={clarity:number;confusion:number;metta:number;practice:Partial<Record<PracticeKey,number>>};
+const emptyTotals:Totals={clarity:0,confusion:0,metta:0,practice:{}};
+
+export default function QuarrelsomeInnMinigame({stats,onChange,onExit}:{stats:GameStats;onChange:(stats:GameStats)=>void;onExit:()=>void}){
+ const [{debater,scenario}]=useState(()=>{const debater=innDebaters[Math.floor(Math.random()*innDebaters.length)];return{debater,scenario:debater.scenarios[Math.floor(Math.random()*debater.scenarios.length)]}}),[nodeId,setNodeId]=useState('start'),[totals,setTotals]=useState<Totals>(emptyTotals),[result,setResult]=useState<{title:string;copy:string;grade:string;changes:Totals}|null>(null);
+ const node:DialogueNode=nodeId==='start'?{line:scenario.opening,replies:scenario.replies}:scenario.nodes[nodeId];
+ const combine=(effect:DialogueEffect={})=>{const practice={...totals.practice};for(const [key,value] of Object.entries(effect.practice??{}) as [PracticeKey,number][])practice[key]=(practice[key]??0)+value;return{clarity:totals.clarity+(effect.clarity??0),confusion:totals.confusion+(effect.confusion??0),metta:totals.metta+(effect.metta??0),practice}};
+ const choose=(reply:typeof node.replies[number])=>{const next=combine(reply.effect);setTotals(next);if(reply.next){setNodeId(reply.next);return}if(!reply.ending)return;const ending=scenario.endings[reply.ending],changes={...next,clarity:next.clarity+(ending.effect.clarity??0),confusion:next.confusion+(ending.effect.confusion??0),metta:next.metta+(ending.effect.metta??0),practice:{...next.practice}};for(const [key,value] of Object.entries(ending.effect.practice??{}) as [PracticeKey,number][])changes.practice[key]=(changes.practice[key]??0)+value;setResult({title:ending.title,copy:ending.copy,grade:ending.grade,changes})};
+ const finish=()=>{if(!result)return;const p=result.changes.practice;onChange({...stats,clarity:clampMeter(stats.clarity+result.changes.clarity),confusion:clampMeter(stats.confusion+result.changes.confusion),concentration:clampMeter(stats.concentration-(result.grade==='success'?3:result.grade==='partial'?4:6)),metta:clampMeter(stats.metta+result.changes.metta+(p.metta??0)),equanimity:clampMeter(stats.equanimity+(p.equanimity??0)),realityTesting:clampMeter(stats.realityTesting+(p.realityTesting??0)),integration:clampMeter(stats.integration+(p.integration??0)),craving:clampMeter(stats.craving+(p.craving??0))});onExit()};
+ const replies=node.replies.filter(reply=>!reply.requires||(reply.requires.key==='metta'?stats.metta:stats.equanimity)>=reply.requires.min);
+ return <section className="inn-minigame"><header><small>MISTS OF PURIFICATION</small><h1>THE QUARRELSOME INN</h1><p>Correct what matters, release what does not, and try not to become the furniture.</p></header>{result?<div className={`inn-result ${result.grade}`}><small>{result.grade.toUpperCase()}</small><h2>{result.title}</h2><p>{result.copy}</p><button onClick={finish}>RETURN TO THE MISTS</button></div>:<div className="argument-stage"><div className="debater-portrait" style={{backgroundPosition:`${debater.sprite*25}% 50%`}}/><div className="argument-box"><small>{debater.name.toUpperCase()} · {debater.epithet}</small><p>“{node.line}”</p>{replies.map(reply=><button key={reply.text} onClick={()=>choose(reply)}>{reply.text}</button>)}</div></div>}<button className="leave-inn" onClick={onExit}>LEAVE THE ARGUMENT</button></section>;
+}

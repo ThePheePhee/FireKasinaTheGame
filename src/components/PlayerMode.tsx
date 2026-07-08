@@ -13,7 +13,7 @@ import './PlayerMode.css';
 
 export interface GameRules {
  stats:GameStats;discovery:MutableRefObject<DiscoveryPoint[]>;
- onStatsChange:(stats:GameStats)=>void;onPractice:()=>void;
+ onStatsChange:(stats:GameStats)=>void;onPractice:()=>void;mistOverride:boolean;fairyOverride:boolean;
 }
 interface PlayerModeProps {
  player:MutableRefObject<Player>;dialogue:boolean;discoveredRegions:MutableRefObject<Set<string>>;
@@ -38,8 +38,8 @@ export default function PlayerMode({player,dialogue,discoveredRegions,onDiscover
  useEffect(()=>{let frame=0,last=performance.now();const tick=(now:number)=>{
   const canvas=canvasRef.current;if(!canvas)return;const dt=Math.min((now-last)/1000,.04);last=now;const d=devicePixelRatio||1,width=canvas.width/d,height=canvas.height/d,ctx=canvas.getContext('2d')!,rules=gameRef.current;
   if(!dialogue){const before=player.current;let next=movePlayer(before,keys.current,dt,WORLD.width,WORLD.height);let nextRegion=mapRegions.filter(region=>regionContains(region,next.x,next.y)).sort((a,b)=>regionExtent(a)-regionExtent(b))[0]??null;const wasInMist=isMistCountry(mapRegions.filter(region=>regionContains(region,before.x,before.y)).sort((a,b)=>regionExtent(a)-regionExtent(b))[0]??null,before.x,before.y),enteringMist=isMistCountry(nextRegion,next.x,next.y);
-   if(rules&&enteringMist&&!wasInMist&&(statsRef.current?.concentration??0)<MIST_ENTRY_CONCENTRATION){next={...before,moving:false};nextRegion=mapRegions.filter(region=>regionContains(region,next.x,next.y)).sort((a,b)=>regionExtent(a)-regionExtent(b))[0]??null;setWarning(`THE MISTS TURN YOU BACK · ${MIST_ENTRY_CONCENTRATION} CONCENTRATION REQUIRED`)}
-   else if(rules&&wasInMist&&!enteringMist&&!safeIds.has(nextRegion?.id??'')&&((statsRef.current?.concentration??0)<FAIRY_ENTRY_CONCENTRATION||(statsRef.current?.clarity??0)<FAIRY_ENTRY_CLARITY)){next={...before,moving:false};nextRegion=mapRegions.filter(region=>regionContains(region,next.x,next.y)).sort((a,b)=>regionExtent(a)-regionExtent(b))[0]??null;setWarning(`THE FAIRY PLAYGROUND REMAINS VEILED · ${FAIRY_ENTRY_CONCENTRATION} CONCENTRATION + ${FAIRY_ENTRY_CLARITY} CLARITY`)}
+   if(rules&&!rules.mistOverride&&enteringMist&&!wasInMist&&(statsRef.current?.concentration??0)<MIST_ENTRY_CONCENTRATION){next={...before,moving:false};nextRegion=mapRegions.filter(region=>regionContains(region,next.x,next.y)).sort((a,b)=>regionExtent(a)-regionExtent(b))[0]??null;setWarning(`THE MISTS TURN YOU BACK · ${MIST_ENTRY_CONCENTRATION} CONCENTRATION REQUIRED`)}
+   else if(rules&&!rules.fairyOverride&&wasInMist&&!enteringMist&&!safeIds.has(nextRegion?.id??'')&&((statsRef.current?.concentration??0)<FAIRY_ENTRY_CONCENTRATION||(statsRef.current?.clarity??0)<FAIRY_ENTRY_CLARITY)){next={...before,moving:false};nextRegion=mapRegions.filter(region=>regionContains(region,next.x,next.y)).sort((a,b)=>regionExtent(a)-regionExtent(b))[0]??null;setWarning(`THE FAIRY PLAYGROUND REMAINS VEILED · ${FAIRY_ENTRY_CONCENTRATION} CONCENTRATION + ${FAIRY_ENTRY_CLARITY} CLARITY`)}
    else if(rules&&enteringMist&&statsRef.current){const concentration=statsRef.current.concentration,pull=Math.max(0,Math.min(1,(MIST_ENTRY_CONCENTRATION-concentration)/25)),moved=Math.hypot(next.x-before.x,next.y-before.y),range=mapRegions.find(region=>region.id==='red-dot')!;if(moved&&pull>0){const homeX=range.x-before.x,homeY=range.y-before.y,homeDistance=Math.hypot(homeX,homeY)||1,speed=190*dt;next.x=before.x+(next.x-before.x)*(1-pull)+homeX/homeDistance*speed*pull;next.y=before.y+(next.y-before.y)*(1-pull)+homeY/homeDistance*speed*pull}const wobble=(statsRef.current.confusion/100)*38*dt;next.x=Math.max(12,Math.min(WORLD.width-12,next.x+(Math.random()-.5)*wobble));next.y=Math.max(12,Math.min(WORLD.height-12,next.y+(Math.random()-.5)*wobble))}
    player.current=next;
   }
