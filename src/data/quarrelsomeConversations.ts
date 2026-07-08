@@ -8,7 +8,8 @@ export interface DialogueEnding {title:string;copy:string;grade:'success'|'parti
 export interface ArgumentScenario {id:string;opening:string;replies:DialogueReply[];nodes:Record<string,DialogueNode>;endings:Record<string,DialogueEnding>}
 export interface InnDebater {id:string;name:string;epithet:string;sprite:number;scenarios:ArgumentScenario[]}
 
-const N=(text:string,next:string,effect:DialogueEffect={},requires?:DialogueRequirement):DialogueReply=>({text,next,effect,requires});
+const terminalIds=new Set(['royal-ruin','ash','dogma','public-pillory','nettled','soft-dogma','swindled','dry-world','wonder-kept','tea-tyrant','silence']);
+const N=(text:string,next:string,effect:DialogueEffect={},requires?:DialogueRequirement):DialogueReply=>terminalIds.has(next)?{text,ending:next,effect,requires}:{text,next,effect,requires};
 const E=(text:string,ending:string,effect:DialogueEffect={},requires?:DialogueRequirement):DialogueReply=>({text,ending,effect,requires});
 const eq=(min:number):DialogueRequirement=>({key:'equanimity',min});
 const metta=(min:number):DialogueRequirement=>({key:'metta',min});
@@ -156,3 +157,17 @@ export const innDebaters:InnDebater[]=[
  {id:'metaphor',name:'Mistress Metaphor',epithet:'Oracle of Things That Are Like Other Things',sprite:3,scenarios:[metaphor]},
  {id:'anecdote',name:'Brother Anecdote',epithet:'Bearer of the Universal Sample Size of One',sprite:4,scenarios:[anecdote]}
 ];
+
+export function validateInnDialogues(){
+ const issues:string[]=[];
+ for(const debater of innDebaters)for(const scenario of debater.scenarios){
+  const inspect=(where:string,replies:DialogueReply[])=>replies.forEach((reply,index)=>{
+   if(reply.next&&!scenario.nodes[reply.next])issues.push(`${debater.id}/${scenario.id}/${where}[${index}] points to missing node ${reply.next}`);
+   if(reply.ending&&!scenario.endings[reply.ending])issues.push(`${debater.id}/${scenario.id}/${where}[${index}] points to missing ending ${reply.ending}`);
+   if(!reply.next&&!reply.ending)issues.push(`${debater.id}/${scenario.id}/${where}[${index}] has no destination`);
+  });
+  inspect('start',scenario.replies);
+  for(const [id,node] of Object.entries(scenario.nodes))inspect(id,node.replies);
+ }
+ return issues;
+}
