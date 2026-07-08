@@ -1,4 +1,4 @@
-type AtlasName='player'|'landmarks'|'terrain'|'expansion'|'special'|'story'|'states'|'recall'|'rupa'|'clarity'|'fairy'|'luminous'|'divine'|'settlements';
+type AtlasName='player'|'landmarks'|'terrain'|'expansion'|'special'|'story'|'states'|'recall'|'rupa'|'clarity'|'fairy'|'luminous'|'divine'|'settlements'|'tavern-interior'|'library-interior';
 const atlases:Partial<Record<AtlasName,HTMLImageElement>>={};
 const ready=new Set<AtlasName>(),listeners=new Set<()=>void>();
 
@@ -20,9 +20,11 @@ load('fairy','fairy-playground-props.png');
 load('luminous','luminous-materials-v2.png');
 load('divine','divine-abodes-v2.png');
 load('settlements','library-tavern-v1.png');
+load('tavern-interior','tavern-interior-v2.png');
+load('library-interior','library-interior-v1.png');
 
 export function getAtlas(name:AtlasName){return ready.has(name)?atlases[name]??null:null}
-export function onPixelArtReady(listener:()=>void){listeners.add(listener);if(ready.size===14)queueMicrotask(listener);return()=>{listeners.delete(listener)}}
+export function onPixelArtReady(listener:()=>void){listeners.add(listener);if(ready.size===16)queueMicrotask(listener);return()=>{listeners.delete(listener)}}
 
 export function drawAtlasCell(ctx:CanvasRenderingContext2D,image:HTMLImageElement,column:number,row:number,x:number,y:number,width:number,height=width){
  const cellWidth=image.naturalWidth/4,cellHeight=image.naturalHeight/4;

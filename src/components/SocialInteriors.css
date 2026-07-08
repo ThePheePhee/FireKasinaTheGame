@@ -1,0 +1,7 @@
+.theme-tavern>header{border-color:#d69445}
+.theme-library>header{border-color:#c8a363}
+.interior-links{display:flex;flex-wrap:wrap;gap:7px;margin:0 0 13px}
+.interior-links a{padding:8px 10px;border:2px solid #ad844d;background:#2b2230;color:#ffe09b;font:7px 'Press Start 2P';line-height:1.45;text-decoration:none}
+.interior-links a:hover,.interior-links a:focus-visible{border-color:#ffe09b;background:#493648}
+.submap-library{background:#181411}
+.submap-tavern{background:#21150f}

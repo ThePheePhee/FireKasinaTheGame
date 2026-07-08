@@ -1,8 +1,10 @@
-export type InteriorTheme='tower'|'fireworks'|'magick'|'jhana'|'divine'|'formless'|'healing'|'recall'|'tavern';
+export type InteriorTheme='tower'|'fireworks'|'magick'|'jhana'|'divine'|'formless'|'healing'|'recall'|'tavern'|'library';
 export type InteriorShape='circle'|'rect';
-export interface InteriorZone {id:string;name:string;copy:string;x:number;y:number;w:number;h:number;shape:InteriorShape;art:[number,number];artAtlas?:'special'|'legacy'|'states'|'rupa'|'luminous'|'divine'|'settlements';reference?:{label:string;url:string}}
+export interface LoreLink {label:string;url:string}
+export interface InteriorZone {id:string;name:string;copy:string;x:number;y:number;w:number;h:number;shape:InteriorShape;art:[number,number];artAtlas?:'special'|'legacy'|'states'|'rupa'|'luminous'|'divine'|'settlements';reference?:LoreLink;references?:LoreLink[]}
+export interface InteriorNpc {id:string;name:string;copy:string;x:number;y:number;art:[number,number];atlas:'tavern-interior'|'library-interior';wander:number;references?:LoreLink[]}
 export interface InteriorObstacle {x:number;y:number;w:number;h:number}
-export interface InteriorFloor {id:string;name:string;subtitle:string;width:number;height:number;spawn:[number,number];zones:InteriorZone[];obstacles:InteriorObstacle[]}
+export interface InteriorFloor {id:string;name:string;subtitle:string;width:number;height:number;spawn:[number,number];zones:InteriorZone[];obstacles:InteriorObstacle[];npcs?:InteriorNpc[];environment?:'tavern'|'library'}
 export interface InteriorMap {id:string;regionId:string;name:string;theme:InteriorTheme;floors:InteriorFloor[]}
 
 const zone=(id:string,name:string,copy:string,x:number,y:number,art:[number,number],w=230,h=180,shape:InteriorShape='rect'):InteriorZone=>({id,name,copy,x,y,w,h,shape,art});
@@ -61,14 +63,24 @@ export const interiorMaps:InteriorMap[]=[
    zone('records','The Wonder Ledger','Write predictions before outcomes arrive. Memory is a mischievous wizard; ink keeps it from quietly improving yesterday’s prophecy.',1380,620,[2,3],360,280)
   ],1750,1050)
  ]},
- {id:'fortification-tavern-world',regionId:'fortification-tavern',name:'The Tavern of Fortification',theme:'tavern',floors:[
-  floor('common-room','The Fortified Common Room','Warm food, sturdy walls, and fellow travelers comparing their maps',[
-   {...zone('hearth','The Fortifying Hearth','The fire is ordinary, the stew is warm, and nobody needs to achieve anything before supper. Rest here before deciding which road deserves your boots.',800,250,[2,0],340,250),artAtlas:'settlements'},
-   {...zone('mapmaker','Mara the Mapmaker','The great map has three broad movements: practice begins near home, the Mists contain unstable encounters, and the Fairy Playground holds destinations shaped by what you learned inside. Roads show affinities, not compulsory sequences.',320,650,[0,1],330,270,'circle'),artAtlas:'settlements'},
-   {...zone('practitioner','Suri of the Small Flame','Concentration is your travel strength. The Red Dot Range restores it; the Mists spend it. Clarity comes from meeting difficult territory directly, and both qualities are needed to cross into the Fairy Playground.',820,690,[1,1],340,270,'circle'),artAtlas:'settlements'},
-   {...zone('innkeeper','Auntie Moss, Innkeeper','If the landscape becomes too grand, return to the house, garden, library, or tavern. A map is useful only when it helps a traveler come home with better stories and steadier feet.',1320,650,[2,1],340,270,'circle'),artAtlas:'settlements'}
-  ],1650,1050)
- ]},
+ {id:'lantern-library-world',regionId:'library',name:'The Lantern Library',theme:'library',floors:[{
+  id:'reading-hall',name:'The Three Reading Halls',subtitle:'Practice records arranged beneath warm, wandering lanterns',width:1650,height:1050,spawn:[825,930],environment:'library',
+  zones:[
+   {...zone('fire-kasina-shelves','Fire Kasina Practice','The flame-lit shelves gather practical accounts of the kasina journey: how to begin, what strange country may appear, and how fellow travellers compare their maps.',330,350,[0,1],330,300),references:[{label:'Fire Kasina',url:'https://firekasina.org/'},{label:'Fire Kasina Discord',url:'https://discord.com/channels/934072734466572308/934072735171231755'}]},
+   {...zone('meditation-shelves','Meditation Practice','Here the wider contemplative map is kept: concentration, insight, ethics, awakening models, and the cheerful arguments that prevent any single book from pretending to be the whole library.',825,350,[1,1],330,300),references:[{label:'Mastering the Core Teachings of the Buddha',url:'https://www.mctb.org/'},{label:'Dharma Overground forum',url:'https://www.dharmaoverground.org/'}]},
+   {...zone('magick-shelves','Magick','Astrolabes and old grimoires share these shelves with stern notes about discernment. Wonder is welcome here, but every enchantment must surrender its library card to reality-testing.',1320,350,[2,1],330,300),references:[{label:'Keep Silence',url:'https://keepsilence.org/'},{label:'The Hermetic Library',url:'https://hermetic.com/'}]}
+  ],obstacles:[{x:130,y:90,w:1390,h:90},{x:185,y:250,w:290,h:170},{x:680,y:250,w:290,h:170},{x:1175,y:250,w:290,h:170}]
+ }]},
+ {id:'fortification-tavern-world',regionId:'fortification-tavern',name:'The Tavern of Fortification',theme:'tavern',floors:[{
+  id:'common-room',name:'The Fortified Common Room',subtitle:'Warm food, sturdy walls, and fellow travellers comparing their maps',width:1650,height:1050,spawn:[825,930],environment:'tavern',
+  zones:[zone('hearth','The Fortifying Hearth','The fire is ordinary, the stew is warm, and nobody needs to achieve anything before supper. Rest here before deciding which road deserves your boots.',825,170,[0,0],260,180,'circle')],
+  npcs:[
+   {id:'mapmaker',name:'Mara the Mapmaker',copy:'The great map has three broad movements: practice begins near home, the Mists contain unstable encounters, and the Fairy Playground holds destinations shaped by what you learned inside. Roads show affinities, not compulsory sequences.',x:390,y:650,art:[0,2],atlas:'tavern-interior',wander:75},
+   {id:'practitioner',name:'Suri of the Small Flame',copy:'Concentration is your travel strength. The Red Dot Range restores it; the Mists spend it. Clarity comes from meeting difficult territory directly, and both qualities are needed to cross into the Fairy Playground.',x:820,y:690,art:[1,2],atlas:'tavern-interior',wander:65},
+   {id:'innkeeper',name:'Auntie Moss, Innkeeper',copy:'If the landscape becomes too grand, return to the house, garden, library, or tavern. A map is useful only when it helps a traveller come home with better stories and steadier feet.',x:1240,y:610,art:[2,2],atlas:'tavern-interior',wander:45},
+   {id:'wanderer',name:'Rowan the Returning',copy:'The Mists do not punish retreat. When concentration thins, returning to the Red Dot Range is navigation, not failure. A wise traveller learns the road both ways.',x:1080,y:780,art:[3,2],atlas:'tavern-interior',wander:90}
+  ],obstacles:[{x:470,y:85,w:710,h:140},{x:210,y:390,w:260,h:150},{x:695,y:390,w:260,h:150},{x:1180,y:390,w:260,h:150}]
+ }]},
  {id:'jhana-world',regionId:'jhana',name:'Jhana Range',theme:'jhana',floors:[
   floor('rupa','The Four Rūpa Jhānas','A mountain path where each summit grows quieter',[
    {...zone('j1','First Jhāna','Like a skilled bath attendant kneading sprinkled water through bath powder until the whole ball is saturated yet does not drip: directed attention works rapture and pleasure through the entire body.',250,760,[0,0],300,240),artAtlas:'rupa'},
