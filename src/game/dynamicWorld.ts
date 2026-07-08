@@ -7,7 +7,7 @@ export interface PracticeState {
  realityTesting:number;integration:number;
 }
 export type PracticeKey=keyof PracticeState;
-export interface WorldHistory {visitedRegions:string[];learnedTransitions:string[];previousStates:PracticeState[];unresolvedExperiences:string[];integratedExperiences:string[]}
+export interface WorldHistory {visitedRegions:string[];learnedTransitions:string[];previousStates:PracticeState[];unresolvedExperiences:string[];integratedExperiences:string[];discoveredLocations:Record<string,[number,number]>}
 export interface WorldCondition {key:PracticeKey;min?:number;max?:number}
 export interface ExperientialRegion {id:string;profile:Partial<PracticeState>;effects:Partial<Record<PracticeKey,number>>;attractor?:boolean}
 export interface ExperientialTransition {id:string;source:string;target:string;name:string;family:RouteFamily;kind:RouteKind;required?:WorldCondition[];blocked?:WorldCondition[];oneWay?:boolean}
@@ -16,7 +16,9 @@ export interface ActiveTransition extends ExperientialTransition {score:number}
 export interface DynamicWorld {regions:Region[];routes:Route[];transitions:ActiveTransition[];activeIds:Set<string>;currentRegionId:string;screenMode:ScreenMode;signature:string;reason:string}
 
 export const initialPracticeState:PracticeState={concentration:0,vividness:8,stability:38,generativeControl:4,deconstructiveClarity:8,equanimity:42,craving:18,embodiment:78,realityTesting:82,integration:12};
-export const initialWorldHistory:WorldHistory={visitedRegions:['house'],learnedTransitions:[],previousStates:[],unresolvedExperiences:[],integratedExperiences:[]};
+const homesteadIds=['house','garden','library','fortification-tavern','red-dot'] as const;
+const homesteadLocations=Object.fromEntries(homesteadIds.map(id=>{const region=mapRegions.find(item=>item.id===id)!;return[id,[region.x,region.y] as [number,number]]}));
+export const initialWorldHistory:WorldHistory={visitedRegions:[...homesteadIds],learnedTransitions:[],previousStates:[],unresolvedExperiences:[],integratedExperiences:[],discoveredLocations:homesteadLocations};
 const R=(id:string,profile:Partial<PracticeState>,effects:ExperientialRegion['effects'],attractor=false):ExperientialRegion=>({id,profile,effects,attractor});
 export const experientialRegions:ExperientialRegion[]=[
  R('house',{embodiment:90,stability:65,realityTesting:85},{embodiment:8,stability:4,craving:-5}),
@@ -77,10 +79,10 @@ export function screenModeFor(state:PracticeState):ScreenMode {if(state.vividnes
 const cloneRegion=(region:Region,x:number,y:number):Region=>({...region,x,y});
 export function buildDynamicWorld(state:PracticeState,currentRegionId:string,history:WorldHistory,previousActive=new Set<string>(),reason='The roads quietly reconsider their destinations.'):DynamicWorld{
  const current=experientialRegions.find(region=>region.id===currentRegionId)??experientialRegions[0],outgoing=experientialTransitions.filter(edge=>edge.source===current.id).filter(edge=>edge.blocked?.every(condition=>!conditionMatches(condition,state))??true).filter(edge=>edge.required?.every(condition=>conditionMatches(condition,state,previousActive.has(edge.target)?8:0))??true).map(edge=>({...edge,score:resonance(state,experientialRegions.find(region=>region.id===edge.target)!,history)})).sort((a,b)=>b.score-a.score).slice(0,6);
- const activeIds=new Set(['fairy-playground',current.id,...outgoing.map(edge=>edge.target)]),center:[number,number]=[WORLD.width/2,WORLD.height/2],canonical=new Map(mapRegions.map(region=>[region.id,region]));
- const regions:Region[]=[];for(const id of activeIds){const region=canonical.get(id);if(!region)continue;if(id==='fairy-playground')regions.push({...region});else{const index=outgoing.findIndex(edge=>edge.target===id),edge=outgoing[Math.max(0,index)],angle=-Math.PI/2+Math.max(0,index)*Math.PI*2/Math.max(3,outgoing.length),distance=300+(100-(edge?.score??100))*2.25,x=id===current.id?center[0]:center[0]+Math.cos(angle)*distance,y=id===current.id?center[1]:center[1]+Math.sin(angle)*distance,placed=cloneRegion(region,x,y);regions.push(id==='mist'?{...placed,shape:{kind:'circle',radius:175},layer:2}:placed)}}
+ const activeIds=new Set(['fairy-playground','mist',...homesteadIds,...history.visitedRegions,current.id,...outgoing.map(edge=>edge.target)]),canonical=new Map(mapRegions.map(region=>[region.id,region])),currentCanonical=canonical.get(current.id)!,currentPosition=history.discoveredLocations[current.id]??[currentCanonical.x,currentCanonical.y] as [number,number];
+ const regions:Region[]=[];for(const id of activeIds){const region=canonical.get(id);if(!region)continue;if(id==='fairy-playground'||id==='mist'||homesteadIds.includes(id as typeof homesteadIds[number])){regions.push({...region});continue}const frozen=history.discoveredLocations[id];if(frozen){regions.push(cloneRegion(region,...frozen));continue}const index=outgoing.findIndex(edge=>edge.target===id),edge=outgoing[Math.max(0,index)],angle=-Math.PI/2+Math.max(0,index)*Math.PI*2/Math.max(3,outgoing.length),distance=300+(100-(edge?.score??100))*2.25;regions.push(cloneRegion(region,currentPosition[0]+Math.cos(angle)*distance,currentPosition[1]+Math.sin(angle)*distance))}
  const currentVisible=regions.find(region=>region.id===current.id)!;const routes:Route[]=outgoing.map((edge,index)=>{const target=regions.find(region=>region.id===edge.target)!;const bend=(index%2?1:-1)*42,mid:[number,number]=[(currentVisible.x+target.x)/2+bend,(currentVisible.y+target.y)/2-bend];return{id:edge.id,name:edge.name,family:edge.family,kind:edge.kind,points:[[currentVisible.x,currentVisible.y],mid,[target.x,target.y]],labelAt:mid}});
- const screenMode=screenModeFor(state),signature=`${current.id}:${outgoing.map(edge=>edge.target).join(',')}:${screenMode}`;
+ const screenMode=screenModeFor(state),signature=`${current.id}:${outgoing.map(edge=>edge.target).join(',')}:${screenMode}:${Object.keys(history.discoveredLocations).sort().join(',')}`;
  return{regions,routes,transitions:outgoing,activeIds,currentRegionId:current.id,screenMode,signature,reason};
 }
 
