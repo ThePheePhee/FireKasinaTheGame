@@ -1,7 +1,7 @@
 import {useEffect,useRef,useState} from 'react';
 import type {InteriorMap,InteriorZone} from '../data/interiorMaps';
 import {drawIntegratedFloor} from './InteriorMode';
-import {drawInteriorNpc} from '../rendering/drawSocialInterior';
+import {drawInteriorNpc,drawInteriorNpcLabel,drawSocialForeground} from '../rendering/drawSocialInterior';
 import './SubMap.css';
 
 interface Layout {width:number;height:number;scale:number;left:number;top:number}
@@ -13,7 +13,7 @@ export default function SubMap({map,onExit}:{map:InteriorMap;onExit:()=>void}){
  useEffect(()=>{setFloorIndex(0);setSelected(null)},[map]);
  useEffect(()=>{const load=(file:string,key:keyof typeof assets)=>{const image=new Image();image.onload=()=>setAssets(current=>({...current,[key]:image}));image.src=`${import.meta.env.BASE_URL}assets/${file}`};load('interior-landmarks-v2.png','landmarks');load('environment-tiles-v3.png','tiles');load('healing-jhana-landmarks.png','special');load('submaps-atlas.png','legacy');load('recall-awakening-formless.png','states');load('rupa-jhana-canonical.png','rupa')},[]);
  useEffect(()=>{const container=containerRef.current;if(!container)return;const observer=new ResizeObserver(([entry])=>{const width=entry.contentRect.width,height=entry.contentRect.height,scale=Math.min((width-30)/floor.width,(height-30)/floor.height),left=(width-floor.width*scale)/2,top=(height-floor.height*scale)/2;setLayout({width,height,scale,left,top})});observer.observe(container);return()=>observer.disconnect()},[floor]);
- useEffect(()=>{const canvas=canvasRef.current;if(!canvas||layout.width<=1)return;const d=devicePixelRatio||1,now=performance.now();canvas.width=Math.round(layout.width*d);canvas.height=Math.round(layout.height*d);const ctx=canvas.getContext('2d')!;ctx.setTransform(d,0,0,d,0,0);ctx.imageSmoothingEnabled=false;ctx.clearRect(0,0,layout.width,layout.height);ctx.save();ctx.translate(layout.left,layout.top);ctx.scale(layout.scale,layout.scale);drawIntegratedFloor(ctx,map,floor,assets.landmarks,assets.tiles,now,floorIndex,assets.special,assets.legacy,assets.states,assets.rupa);for(const npc of floor.npcs??[])drawInteriorNpc(ctx,npc,npc.x,npc.y,now);ctx.restore()},[assets,floor,floorIndex,layout,map]);
+ useEffect(()=>{const canvas=canvasRef.current;if(!canvas||layout.width<=1)return;const d=devicePixelRatio||1,now=performance.now();canvas.width=Math.round(layout.width*d);canvas.height=Math.round(layout.height*d);const ctx=canvas.getContext('2d')!;ctx.setTransform(d,0,0,d,0,0);ctx.imageSmoothingEnabled=false;ctx.clearRect(0,0,layout.width,layout.height);ctx.save();ctx.translate(layout.left,layout.top);ctx.scale(layout.scale,layout.scale);drawIntegratedFloor(ctx,map,floor,assets.landmarks,assets.tiles,now,floorIndex,assets.special,assets.legacy,assets.states,assets.rupa);for(const npc of floor.npcs??[])drawInteriorNpc(ctx,npc,npc.x,npc.y,now,false);drawSocialForeground(ctx,floor);for(const npc of floor.npcs??[])drawInteriorNpcLabel(ctx,npc,npc.x,npc.y);ctx.restore()},[assets,floor,floorIndex,layout,map]);
  return <section className={`submap submap-${map.theme}`} aria-label={`${map.name} map`}>
   <div className="submap-header"><button type="button" onClick={onExit}>← MAIN MAP</button><div><small>AREA MAP</small><h1>{map.name}</h1></div><span>{floorIndex+1}/{map.floors.length}</span></div>
   <nav className="floor-tabs" aria-label="Area levels">{map.floors.map((item,index)=><button type="button" key={item.id} className={index===floorIndex?'active':''} onClick={()=>{setFloorIndex(index);setSelected(null)}}>{item.name}</button>)}</nav>

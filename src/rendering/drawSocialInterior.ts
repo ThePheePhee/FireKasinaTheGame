@@ -18,10 +18,8 @@ export function drawSocialInterior(ctx:CanvasRenderingContext2D,map:InteriorMap,
    [[330,350,0],[825,350,1],[1320,350,2]].forEach(([x,y,column])=>cell(ctx,atlas,column,1,x,y,285,285));
    [[170,690,2,0],[1480,690,3,0],[570,680,3,3],[1080,690,0,3],[825,590,2,3]].forEach(([x,y,c,r])=>cell(ctx,atlas,c,r,x,y,125));
   }else{
-   cell(ctx,atlas,2,0,825,150,520,210);cell(ctx,atlas,0,1,150,250,190);cell(ctx,atlas,1,0,255,430,150);
-   [[340,465],[825,465],[1310,465]].forEach(([x,y])=>cell(ctx,atlas,3,0,x,y,230));
-   [[160,760],[1490,760]].forEach(([x,y])=>cell(ctx,atlas,1,1,x,y,170));
-   cell(ctx,atlas,3,1,825,805,145);cell(ctx,atlas,0,3,560,520,95);cell(ctx,atlas,1,3,1040,510,95);
+   cell(ctx,atlas,0,1,175,235,205);cell(ctx,atlas,2,1,1375,225,155);cell(ctx,atlas,1,1,1490,735,175);cell(ctx,atlas,1,1,160,760,155);
+   cell(ctx,atlas,3,1,825,735,300);cell(ctx,atlas,3,3,1460,470,95);cell(ctx,atlas,2,3,450,450,92);cell(ctx,atlas,2,3,825,520,92);cell(ctx,atlas,2,3,1200,450,92);
   }
  }
  const glow=ctx.createRadialGradient(825,library?520:175,10,825,library?520:175,330);glow.addColorStop(0,`rgba(255,202,104,${.14+Math.sin(time/260)*.02})`);glow.addColorStop(1,'transparent');ctx.fillStyle=glow;ctx.fillRect(450,0,750,700);
@@ -29,8 +27,19 @@ export function drawSocialInterior(ctx:CanvasRenderingContext2D,map:InteriorMap,
  ctx.fillStyle='#121017dd';ctx.fillRect(floor.spawn[0]-72,floor.height-65,144,65);ctx.fillStyle='#ffe0a0';ctx.font='bold 12px monospace';ctx.textAlign='center';ctx.fillText('MAIN MAP',floor.spawn[0],floor.height-27);
 }
 
-export function drawInteriorNpc(ctx:CanvasRenderingContext2D,npc:InteriorNpc,x:number,y:number,time:number){
+export function drawSocialForeground(ctx:CanvasRenderingContext2D,floor:InteriorFloor){
+ if(floor.environment!=='tavern')return;const atlas=getAtlas('tavern-interior');if(!atlas)return;
+ cell(ctx,atlas,2,0,825,225,560,230);
+ [[450,510],[825,580],[1200,510]].forEach(([x,y])=>cell(ctx,atlas,3,0,x,y,240));
+ cell(ctx,atlas,0,3,450,510,104);cell(ctx,atlas,1,3,825,575,92);cell(ctx,atlas,1,3,1200,505,82);
+}
+
+export function drawInteriorNpc(ctx:CanvasRenderingContext2D,npc:InteriorNpc,x:number,y:number,time:number,showLabel=true){
  const atlas=getAtlas(npc.atlas);if(!atlas)return;
  const bob=Math.sin(time/420+npc.x)*1.5;cell(ctx,atlas,npc.art[0],npc.art[1],x,y-11+bob,72,72);
+ if(showLabel)drawInteriorNpcLabel(ctx,npc,x,y);
+}
+
+export function drawInteriorNpcLabel(ctx:CanvasRenderingContext2D,npc:InteriorNpc,x:number,y:number){
  ctx.fillStyle='#151019d9';ctx.font='bold 11px monospace';ctx.textAlign='center';const width=Math.min(210,ctx.measureText(npc.name).width+16);ctx.fillRect(x-width/2,y+33,width,22);ctx.fillStyle='#fff0bd';ctx.fillText(npc.name,x,y+48);
 }

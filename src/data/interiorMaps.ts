@@ -73,13 +73,13 @@ export const interiorMaps:InteriorMap[]=[
  }]},
  {id:'fortification-tavern-world',regionId:'fortification-tavern',name:'The Tavern of Fortification',theme:'tavern',floors:[{
   id:'common-room',name:'The Fortified Common Room',subtitle:'Warm food, sturdy walls, and fellow travellers comparing their maps',width:1650,height:1050,spawn:[825,930],environment:'tavern',
-  zones:[zone('hearth','The Fortifying Hearth','The fire is ordinary, the stew is warm, and nobody needs to achieve anything before supper. Rest here before deciding which road deserves your boots.',825,170,[0,0],260,180,'circle')],
+  zones:[zone('hearth','The Fortifying Hearth','The fire is ordinary, the stew is warm, and nobody needs to achieve anything before supper. Rest here before deciding which road deserves your boots.',175,235,[0,0],250,210,'circle')],
   npcs:[
-   {id:'mapmaker',name:'Mara the Mapmaker',copy:'The great map has three broad movements: practice begins near home, the Mists contain unstable encounters, and the Fairy Playground holds destinations shaped by what you learned inside. Roads show affinities, not compulsory sequences.',x:390,y:650,art:[0,2],atlas:'tavern-interior',wander:75},
-   {id:'practitioner',name:'Suri of the Small Flame',copy:'Concentration is your travel strength. The Red Dot Range restores it; the Mists spend it. Clarity comes from meeting difficult territory directly, and both qualities are needed to cross into the Fairy Playground.',x:820,y:690,art:[1,2],atlas:'tavern-interior',wander:65},
-   {id:'innkeeper',name:'Auntie Moss, Innkeeper',copy:'If the landscape becomes too grand, return to the house, garden, library, or tavern. A map is useful only when it helps a traveller come home with better stories and steadier feet.',x:1240,y:610,art:[2,2],atlas:'tavern-interior',wander:45},
-   {id:'wanderer',name:'Rowan the Returning',copy:'The Mists do not punish retreat. When concentration thins, returning to the Red Dot Range is navigation, not failure. A wise traveller learns the road both ways.',x:1080,y:780,art:[3,2],atlas:'tavern-interior',wander:90}
-  ],obstacles:[{x:470,y:85,w:710,h:140},{x:210,y:390,w:260,h:150},{x:695,y:390,w:260,h:150},{x:1180,y:390,w:260,h:150}]
+   {id:'innkeeper',name:'Auntie Moss, Innkeeper',copy:'If the landscape becomes too grand, return to the house, garden, library, or tavern. A map is useful only when it helps a traveller come home with better stories and steadier feet.',x:825,y:180,art:[2,2],atlas:'tavern-interior',wander:2},
+   {id:'mapmaker',name:'Mara the Mapmaker',copy:'The great map has three broad movements: practice begins near home, the Mists contain unstable encounters, and the Fairy Playground holds destinations shaped by what you learned inside. Roads show affinities, not compulsory sequences.',x:450,y:445,art:[0,2],atlas:'tavern-interior',wander:2},
+   {id:'practitioner',name:'Suri of the Small Flame',copy:'Concentration is your travel strength. The Red Dot Range restores it; the Mists spend it. Clarity comes from meeting difficult territory directly, and both qualities are needed to cross into the Fairy Playground.',x:825,y:515,art:[1,2],atlas:'tavern-interior',wander:2},
+   {id:'wanderer',name:'Rowan the Returning',copy:'The Mists do not punish retreat. When concentration thins, returning to the Red Dot Range is navigation, not failure. A wise traveller learns the road both ways.',x:1200,y:445,art:[3,2],atlas:'tavern-interior',wander:2}
+  ],obstacles:[{x:545,y:145,w:560,h:155},{x:325,y:430,w:250,h:165},{x:700,y:500,w:250,h:170},{x:1075,y:430,w:250,h:165},{x:95,y:155,w:165,h:165},{x:1410,y:660,w:150,h:160}]
  }]},
  {id:'jhana-world',regionId:'jhana',name:'Jhana Range',theme:'jhana',floors:[
   floor('rupa','The Four Rūpa Jhānas','A mountain path where each summit grows quieter',[
