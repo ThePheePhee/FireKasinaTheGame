@@ -5,4 +5,5 @@ import './styles.css';
 import './mobile.css';
 import './dialogue.css';
 import './mapControls.css';
+import './minigameOverrides.css';
 ReactDOM.createRoot(document.getElementById('root')!).render(<React.StrictMode><App /></React.StrictMode>);

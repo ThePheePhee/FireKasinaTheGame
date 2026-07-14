@@ -1,0 +1,17 @@
+.game .boohoo-minigame>header,
+.game .chasm-minigame>header,
+.game .inn-minigame>header,
+.game .trauma-labyrinth>header{
+ position:relative!important;
+ inset:auto!important;
+ display:block!important;
+ flex:0 0 auto!important;
+ height:auto!important;
+ pointer-events:auto!important;
+}
+
+.game .trauma-labyrinth .trauma-layout{
+ align-items:flex-start;
+ flex:0 0 auto;
+ min-height:auto;
+}
