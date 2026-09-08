@@ -1,24 +1,98 @@
-import {useEffect,useRef,useState} from 'react';
-import {clampMeter,type GameStats} from '../game/gameState';
-import {innDebaters,validateInnDialogues,type DialogueEffect,type DialogueNode,type PracticeKey} from '../data/quarrelsomeConversations';
+import {useEffect, useRef, useState} from 'react';
+import type {GameStats} from '../game/gameState';
+import {innDebaters, validateInnDialogues, type DialogueReply} from '../data/quarrelsomeConversations';
+import {advanceInnConversation, createInnSession, getAvailableInnReplies, getInnNode, leaveInnConversation, settleInnResult} from '../game/innDialogue';
 import './QuarrelsomeDialogues.css';
 import './QuarrelsomeInnMinigame.css';
 
-type Totals={clarity:number;confusion:number;metta:number;practice:Partial<Record<PracticeKey,number>>};
-type ThreadTone='clear'|'warm'|'tangled';
-const emptyTotals:Totals={clarity:0,confusion:0,metta:0,practice:{}};
-const integrityIssues=validateInnDialogues();
+const integrityIssues = validateInnDialogues();
 
-export default function QuarrelsomeInnMinigame({stats,onChange,onExit}:{stats:GameStats;onChange:(stats:GameStats)=>void;onExit:()=>void}){
- const containerRef=useRef<HTMLElement>(null);
- const [{debater,scenario}]=useState(()=>{const debater=innDebaters[Math.floor(Math.random()*innDebaters.length)];return{debater,scenario:debater.scenarios[Math.floor(Math.random()*debater.scenarios.length)]}}),[nodeId,setNodeId]=useState('start'),[totals,setTotals]=useState<Totals>(emptyTotals),[result,setResult]=useState<{title:string;copy:string;grade:string;changes:Totals}|null>(null),[thread,setThread]=useState<ThreadTone[]>([]),[mood,setMood]=useState<'listening'|ThreadTone>('listening'),[lastReply,setLastReply]=useState<string|null>(null);
- const node:DialogueNode|undefined=nodeId==='start'?{line:scenario.opening,replies:scenario.replies}:scenario.nodes[nodeId];
- const combine=(effect:DialogueEffect={})=>{const practice={...totals.practice};for(const [key,value] of Object.entries(effect.practice??{}) as [PracticeKey,number][])practice[key]=(practice[key]??0)+value;return{clarity:totals.clarity+(effect.clarity??0),confusion:totals.confusion+(effect.confusion??0),metta:totals.metta+(effect.metta??0),practice}};
- const choose=(reply:NonNullable<typeof node>['replies'][number])=>{const effect=reply.effect??{},tone:ThreadTone=(effect.confusion??0)>Math.max(effect.clarity??0,effect.metta??0)?'tangled':(effect.metta??0)>(effect.clarity??0)?'warm':'clear';setLastReply(reply.text);setMood(tone);setThread(value=>[...value,tone]);const next=combine(effect);setTotals(next);if(reply.next){if(scenario.nodes[reply.next])setNodeId(reply.next);else setResult({title:'A THREAD COMES LOOSE',copy:'The argument loses its place. You return to the Inn with the useful lesson that even conversational maps need checking.',grade:'partial',changes:next});return}if(!reply.ending)return;const ending=scenario.endings[reply.ending];if(!ending){setResult({title:'THE LAST WORD GOES MISSING',copy:'The conversation reaches an unmarked ending. Nothing is won, and the game remains standing.',grade:'partial',changes:next});return}const changes={...next,clarity:next.clarity+(ending.effect.clarity??0),confusion:next.confusion+(ending.effect.confusion??0),metta:next.metta+(ending.effect.metta??0),practice:{...next.practice}};for(const [key,value] of Object.entries(ending.effect.practice??{}) as [PracticeKey,number][])changes.practice[key]=(changes.practice[key]??0)+value;setResult({title:ending.title,copy:ending.copy,grade:ending.grade,changes})};
- const finish=()=>{if(!result)return;const p=result.changes.practice;onChange({...stats,clarity:clampMeter((stats.clarity??0)+result.changes.clarity),confusion:clampMeter((stats.confusion??0)+result.changes.confusion),concentration:clampMeter((stats.concentration??0)-(result.grade==='success'?3:result.grade==='partial'?4:6)),metta:clampMeter((stats.metta??0)+result.changes.metta+(p.metta??0)),equanimity:clampMeter((stats.equanimity??0)+(p.equanimity??0)),realityTesting:clampMeter((stats.realityTesting??0)+(p.realityTesting??0)),integration:clampMeter((stats.integration??0)+(p.integration??0)),craving:clampMeter((stats.craving??0)+(p.craving??0))});onExit()};
- const replies=node?.replies.filter(reply=>!reply.requires||(reply.requires.key==='metta'?(stats.metta??0):(stats.equanimity??0))>=reply.requires.min)??[];
- const unavailable=integrityIssues.length>0||!node;
- useEffect(()=>{containerRef.current?.scrollTo({top:0,behavior:'smooth'})},[nodeId,result]);
- const room=<div className="inn-room" aria-hidden="true"><div className="inn-firelight"/><div className="inn-embers"><i/><i/><i/><i/></div><div className="debater-portrait" style={{backgroundPosition:`${debater.sprite*25}% 50%`}}/><div className="inn-player-sprite"/><div className="speech-runes">{thread.slice(-7).map((tone,index)=><i key={index} className={tone}/>)}</div></div>;
- return <section ref={containerRef} className={`inn-minigame inn-mood-${mood}`}><header><small>MISTS OF PURIFICATION · TABLE {debater.sprite+1}</small><h1>THE QUARRELSOME INN</h1><p>Correct what matters, release what does not, and try not to become the furniture.</p></header>{unavailable?<div className="inn-result partial"><small>THE INNKEEPER INTERVENES</small><h2>THE ARGUMENT NEEDS REPAIR</h2><p>A loose conversational thread was caught before it could tangle the whole game. Please try another table.</p><button onClick={onExit}>RETURN TO THE MISTS</button></div>:result?<><div className="result-room">{room}</div><div className={`inn-result ${result.grade}`}><small>{result.grade.toUpperCase()} · {thread.length} EXCHANGES</small><h2>{result.title}</h2><p>{result.copy}</p><button onClick={finish}>RETURN TO THE MISTS</button></div></>:<div className="argument-stage">{room}<div className="argument-box"><small>{debater.name.toUpperCase()} · {debater.epithet}</small>{lastReply&&<div className="last-player-line"><b>YOU</b><span>“{lastReply}”</span></div>}<p className="debater-line">“{node.line}”</p><div className="conversation-thread"><span>CONVERSATION THREAD</span>{thread.length?<b>{thread.map((tone,index)=><i key={index} className={tone}/>)}</b>:<em>LISTENING…</em>}</div>{replies.map((reply,index)=><button key={reply.text} onClick={()=>choose(reply)}><span>{index+1}</span>{reply.text}</button>)}</div></div>}<button className="leave-inn" onClick={onExit}>LEAVE THE ARGUMENT</button></section>;
+export default function QuarrelsomeInnMinigame({stats, onChange, onExit}: {stats: GameStats;onChange: (stats: GameStats) => void;onExit: () => void}) {
+  const containerRef = useRef<HTMLElement>(null);
+  const dialogueRef = useRef<HTMLDivElement>(null);
+  const lineRef = useRef<HTMLParagraphElement>(null);
+  const settled = useRef(false);
+  const [{debater, scenario}] = useState(() => {
+    const debater = innDebaters[Math.floor(Math.random() * innDebaters.length)];
+    return {debater, scenario: debater.scenarios[Math.floor(Math.random() * debater.scenarios.length)]};
+  });
+  const [session, setSession] = useState(createInnSession);
+  const {result, history} = session;
+  const node = getInnNode(scenario, session.nodeId);
+  const replies = getAvailableInnReplies(scenario, session, stats);
+  const last = history[history.length - 1];
+  const mood = last?.tone ?? 'listening';
+  const unavailable = integrityIssues.length > 0 || !node;
+
+  const choose = (reply: DialogueReply) => {
+    const exchange = history.length;
+    // A double tap from the old scene cannot accidentally choose a reply in the new one.
+    setSession(current => current.history.length !== exchange ? current : advanceInnConversation(scenario, current, reply, stats));
+  };
+  const finish = () => {
+    if (!result || settled.current) return;
+    settled.current = true;
+    onChange(settleInnResult(stats, result));
+    onExit();
+  };
+  const leave = () => {
+    if (result) return finish();
+    if (!history.length || unavailable) return onExit();
+    setSession(leaveInnConversation);
+  };
+
+  useEffect(() => {
+    dialogueRef.current?.scrollTo({top: 0});
+    lineRef.current?.focus({preventScroll: true});
+    if (result) containerRef.current?.scrollTo({top: 0});
+  }, [history.length, result]);
+
+  useEffect(() => {
+    const handleKey = (event: KeyboardEvent) => {
+      if (event.defaultPrevented || event.repeat || event.ctrlKey || event.metaKey || event.altKey) return;
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        leave();
+      } else if (!unavailable && !result && /^[1-9]$/.test(event.key)) {
+        const reply = replies[Number(event.key) - 1];
+        if (reply) {event.preventDefault(); choose(reply);}
+      }
+    };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  });
+
+  const room = <div className="inn-room" aria-hidden="true">
+    <div className="inn-firelight"/><div className="inn-embers"><i/><i/><i/><i/></div>
+    <div className="debater-portrait" style={{backgroundPosition: `${debater.sprite * 25}% 50%`}}/>
+    <div className="inn-player-sprite"/>
+    <div className="speech-runes">{history.slice(-7).map((entry, index) => <i key={index} className={entry.tone}/>)}</div>
+  </div>;
+
+  return <section ref={containerRef} className={`inn-minigame inn-mood-${mood}`} role="dialog" aria-modal="true" aria-labelledby="inn-title">
+    <header><small>MISTS OF PURIFICATION · TABLE {debater.sprite + 1}</small><h1 id="inn-title">THE QUARRELSOME INN</h1><p>Correct what matters, release what does not, and try not to become the furniture.</p></header>
+    {unavailable ? <div className="inn-result partial"><small>THE INNKEEPER INTERVENES</small><h2>THE ARGUMENT NEEDS REPAIR</h2><p>A loose conversational thread was caught before it could tangle the whole game. Please try another table.</p><button onClick={onExit}>RETURN TO THE MISTS</button></div>
+      : result ? <>
+        <div className="result-room">{room}</div>
+        <div className={`inn-result ${result.grade}`} role="status"><small>{result.grade.toUpperCase()} · {history.length} EXCHANGES</small><h2>{result.title}</h2><p>{result.copy}</p>
+          <div className="inn-outcome-meters" aria-label="Changes from this conversation">
+            {(['clarity', 'confusion', 'concentration'] as const).map(key => {
+              const change = settleInnResult(stats, result)[key] - stats[key];
+              return <span key={key}>{key} <b>{change > 0 ? '+' : ''}{change}</b></span>;
+            })}
+          </div>
+          {scenario.reference && <a className="inn-field-note" href={scenario.reference.url} target="_blank" rel="noopener noreferrer">{scenario.reference.label} ↗</a>}
+          <button onClick={finish}>RETURN TO THE MISTS</button>
+        </div>
+      </> : <div className="argument-stage">{room}<div ref={dialogueRef} className="argument-box">
+        <small>{debater.name.toUpperCase()} · {debater.epithet}</small>
+        {last && <div className="last-player-line"><b>YOU</b><span>“{last.reply}”</span></div>}
+        <p ref={lineRef} tabIndex={-1} className="debater-line">{node.line}</p>
+        {session.visits[session.nodeId] > 1 && <p className="inn-returning-thread">The same question returns. Untie the knot before it becomes another lap.</p>}
+        <div className="conversation-thread"><span>CONVERSATION THREAD</span>{history.length ? <b aria-label={`${history.length} exchanges`}>{history.map((entry, index) => <i aria-hidden="true" key={index} className={entry.tone}/>)}</b> : <em>LISTENING…</em>}</div>
+        {replies.map((reply, index) => <button key={`${session.nodeId}:${reply.text}`} onClick={() => choose(reply)}><span aria-hidden="true">{index + 1}</span>{reply.text}</button>)}
+        <footer>Choose a reply · keys 1–{replies.length} · Esc to leave</footer>
+      </div></div>}
+    {!result && !unavailable && <button className="leave-inn" onClick={leave}>LEAVE THE ARGUMENT</button>}
+  </section>;
 }

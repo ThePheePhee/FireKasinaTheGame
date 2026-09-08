@@ -1,0 +1,79 @@
+/* Shared chrome. Scene interiors and minigames own their own headers. */
+.world-surface { position: absolute; inset: 0; }
+.red-dot-game .practice-meter { margin-left: 0; margin-right: 0; max-width: 100%; }
+.trauma-labyrinth .maze-frame { max-width: 100%; }
+@media (max-width: 700px), (max-height: 690px) {
+  .trauma-labyrinth .maze-frame { width: min(600px, 100%); }
+  .trauma-labyrinth .maze { width: 100%; }
+  .trauma-labyrinth .trauma-controls { width: 144px; height: 132px; }
+  .trauma-labyrinth .trauma-controls button { min-height: 44px; }
+}
+.game > header { z-index: 12; gap: 12px; }
+.game > header nav button { min-height: 44px; }
+button, summary { cursor: pointer; }
+button:focus-visible, summary:focus-visible, a:focus-visible, input:focus-visible { outline: 3px solid #83d7df; outline-offset: 4px; }
+.game canvas:focus-visible { outline: 3px solid #83d7df; outline-offset: -4px; }
+.lore-backdrop { position: fixed; z-index: 12000; inset: 0; background: #09081252; }
+.lore-backdrop .dialogue { max-height: calc(100dvh - 50px); overflow-y: auto; overscroll-behavior: contain; width: min(480px, calc(100vw - 40px)); }
+.lore-backdrop .dialogue:focus { outline-color: #493047; }
+.lore-backdrop .dialogue h2 { padding-right: 32px; }
+.lore-backdrop .dialogue .copy { font-size: 24px; line-height: 1.25; }
+.lore-backdrop .dialogue-close { min-width: 44px; min-height: 44px; }
+.lore-backdrop .enter-area { min-height: 48px; }
+.lore-backdrop .enter-area.secondary { background: #292635 !important; border-color: #a99bbe !important; color: #e1d4e6 !important; }
+.lore-backdrop .lore-links a { font-size: 18px; padding: 8px; }
+.menu-backdrop { z-index: 30000; display: grid; place-items: center; padding: 20px; background: #080913b8; }
+.menu-backdrop .journey-menu { position: relative; inset: auto; width: min(530px, 100%); }
+.journey-menu .copy { padding-left: 0; }
+.journey-menu .menu-controls { font: 17px/1.7 'VT323', monospace; color: #b9b5c5; padding: 12px 0; border-top: 1px dashed #76654f; }
+.save-note { display: block; font: 7px/1.8 'Press Start 2P', monospace; text-align: center; color: #b4a78b; margin-top: 20px; }
+.save-warning { position: absolute; z-index: 15; left: 50%; top: 72px; transform: translateX(-50%); max-width: min(500px, 92vw); padding: 10px; border: 2px solid #d1a858; background: #201921; color: #f0d296; }
+.title-screen { overflow-y: auto; overscroll-behavior: contain; padding: max(14px, env(safe-area-inset-top)) 0 max(14px, env(safe-area-inset-bottom)); }
+.title-card { margin: auto; width: 100%; }
+.title-footnote { display: grid; gap: 14px; margin: 20px 0; color: #ac967d; font: 7px/1.8 'Press Start 2P', monospace; }
+.title-card .new-journey { border: 0; border-bottom: 1px solid #876644; background: transparent; box-shadow: none; font-size: 8px; padding: 10px 8px; margin: 0 auto; color: #c9b797; }
+.title-card .new-journey:hover { transform: none; color: #ffda76; background: #29191d; }
+.pixel-flame { display: block; width: 32px; height: 44px; margin: 0 auto; background: #ed5734; clip-path: polygon(44% 0, 62% 0, 62% 20%, 76% 20%, 76% 36%, 87% 36%, 87% 53%, 100% 53%, 100% 86%, 84% 86%, 84% 100%, 17% 100%, 17% 86%, 0 86%, 0 54%, 15% 54%, 15% 38%, 31% 38%, 31% 20%, 44% 20%); position: relative; animation: hearth-pixel 1.2s steps(2, end) infinite; }
+.pixel-flame:after { content: ''; position: absolute; width: 50%; height: 50%; bottom: 0; left: 25%; background: #ffdf6b; clip-path: polygon(40% 0, 60% 0, 60% 28%, 80% 28%, 80% 50%, 100% 50%, 100% 100%, 0 100%, 0 50%, 20% 50%, 20% 28%, 40% 28%); }
+.title-flame { width: 40px; height: 54px; }
+@keyframes hearth-pixel { 50% { transform: translateY(-2px); background: #f2773d; } }
+.scene-loading { position: absolute; z-index: 22000; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 24px; padding: 30px; background: #16131f; text-align: center; }
+.scene-loading h2 { font: 12px/1.8 'Press Start 2P', monospace; color: #edcb77; }
+.scene-loading p { font-size: 25px; max-width: 480px; }
+.scene-loading button { min-height: 48px; padding: 12px 18px; border: 3px solid #d4b36a; background: #532e31; color: #ffedb5; }
+.game-hud { top: 76px; padding: 9px 12px; width: 300px; }
+.game-hud .meter { grid-template-columns: 112px 1fr 27px; gap: 8px; }
+.game-hud .meter span { font-size: 7px; }
+.game-hud .meter b { font-size: 15px; }
+.game-hud .meter > div { height: 11px; }
+.journey-gate { font: 6px/1.7 'Press Start 2P', monospace; color: #c8b190; margin: 12px 0 5px; }
+.journey-gate.gate-open { color: #a9d2a1; }
+.exploration-options { border-top: 1px solid #564b44; margin-top: 8px; padding-top: 2px; }
+.exploration-options summary { min-height: 32px; padding: 11px 0 5px; font: 7px/1.6 'Press Start 2P', monospace; color: #dbc29a; }
+.exploration-options .exploration-overrides { margin-top: 4px; padding-top: 0; border: 0; gap: 3px; }
+.exploration-options label { min-height: 42px; font-size: 6px; }
+.exploration-options input { flex: none; width: 20px; height: 20px; }
+.exploration-options small { color: #b6a28a; font: 16px/1.2 'VT323', monospace; }
+@media (max-width: 760px) {
+  .game-hud { top: max(66px, calc(env(safe-area-inset-top) + 54px)); left: 10px; width: min(288px, calc(100vw - 20px)); padding: 7px 10px; }
+  .game-hud .meter { grid-template-columns: 101px 1fr 25px; margin: 4px 0; }
+  .game-hud .meter span { font-size: 6px; }
+  .journey-gate { margin-top: 7px; font-size: 5.5px; }
+  .lore-backdrop .dialogue { left: max(12px, env(safe-area-inset-left)); right: max(12px, env(safe-area-inset-right)); bottom: max(14px, env(safe-area-inset-bottom)); width: auto; max-height: calc(100dvh - 36px); }
+  .menu-backdrop .journey-menu { inset: auto; width: 100%; }
+  .title-footnote { font-size: 6px; margin: 16px 0; }
+  .title-card > small { display: block; font-size: 6px; }
+}
+@media (max-height: 540px) and (orientation: landscape) {
+  .title-flame { display: none; }
+  .title-card { padding: 10px 20px; }
+  .title-actions { flex-direction: row; margin: 12px 0; }
+  .title-actions button { width: min(290px, 43vw); }
+  .title-footnote { margin: 10px 0; gap: 6px; }
+  .game-hud { width: 255px; top: 58px; }
+  .game-hud .meter { grid-template-columns: 96px 1fr 24px; }
+  .game-hud .meter span { font-size: 6px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *:before, *:after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: .01ms !important; }
+}

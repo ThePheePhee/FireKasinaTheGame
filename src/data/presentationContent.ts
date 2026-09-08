@@ -4,7 +4,7 @@ export const presentationContent:Record<string,string>={
  garden:'A quiet patch between home and mystery. Here, simple habits take root: sit, look, refresh the flame, and begin again.',
  library:'Every brave traveller needs more than rumours. This enchanted library keeps trustworthy maps, field guides, and hard-won accounts where the lanterns can find them. Read widely, test gently, and return the books before they learn to wander.',
  'fortification-tavern':'A warm little stronghold where fellow travellers trade maps over stew and cider. Ask around before taking a strange road: the patrons know where concentration is restored, where clarity is earned, and why every splendid quest should still leave a path home.',
- 'red-dot':'Your first training ground! Hold the little red afterimage steady. As attention strengthens, the gate to the wild country will open.',
+ 'red-dot':'A candle waits on the practice table. Gather your wandering attention around its flame, then close your eyes when the field grows bright. Follow the afterimage into the red dot, and the dot into a dark absence; open your eyes whenever you need to begin again. Each patient return builds concentration, the travel strength that opens the Mists.',
  mist:'The bright dot has faded, and the Murk has gathered. Do not fight the grey weather. Look gently—hidden colour and shape stir inside it.',
  booboo:'Those who chase the Mists may sink into these gloomy waters. Old sorrow, confusion, and self-pity pull at your boots. Be kind, get grounded, and find the shore.',
  trauma:'A fearful road beneath the Mists, where wounds from long ago still echo. Walk slowly, seek good allies, and beware the heavy breathing of Darth Vader.',

@@ -1,37 +1,53 @@
 # FireKasinaTheGame
 
-A small browser-based, 8-bit interactive presentation about the unfolding terrain of a fire kasina retreat. Walk the map in Player Mode, or reveal the whole world and click its regions in Presentation Mode.
+An 8-bit browser adventure through the imaginative landscape of fire kasina practice. The game and sandbox share the same regions, paths, lore, interiors, and artwork.
+
+[Play the published game](https://thepheephee.github.io/FireKasinaTheGame/)
+
+## Playing
+
+- **Game:** begin at Your House, explore the familiar homestead, and practise in the Red Dot Range. Enter the Mists with at least 35 concentration; the Fairy Playground requires both 35 concentration and 80 clarity. Concentration drains in the Mists, and a weakening lantern draws you home.
+- **Sandbox:** freely walk or browse the complete map, enter its interiors, read field notes, and try minigames. Sandbox practice does not alter your saved game.
+- **Controls:** WASD or arrow keys to walk; touch controls appear on phones. In Map view, tap a region/path, drag to pan, or pinch to zoom. Interiors use actual staircases; E opens nearby lore. Inn replies also accept number keys.
+- **Pause and save:** use Menu or Escape from the main map. Your game position, meters, discoveries, and exploration assists save automatically in this browser. Continue from the title screen. Starting a new journey explicitly replaces that browser's save. Saves do not sync between devices; an unfinished minigame resumes at its map entrance, with the latest saved meters.
+- **Exploration assists:** expand the panel beneath the meters. Checked assists maintain the required real meter values, making exploration possible without repeated returns to practice.
 
 ## Run locally
 
-Requires a current Node.js installation.
+Requires Node.js 22.15 or newer. Dependencies are pinned and the lockfile is committed.
 
-```bash
-npm install
+```sh
+npm ci
 npm run dev
 ```
 
-Open the local URL Vite prints. Use WASD or arrow keys to walk. For a production check, run `npm run build`.
+Open the local address printed by Vite. The app uses the `/FireKasinaTheGame/` base path.
 
-## Editing the world
+```sh
+npm test
+npm run build
+npm run preview
+```
 
-- Edit region names, locations, sizes, and semantic terrain types in `src/data/mapRegions.ts`.
-- Edit information-bubble copy in `src/data/presentationContent.ts`. Each key matches a region `id`.
-- Edit transport networks in `src/data/routes.ts`; routes are arrays of world-space points with a rail, tram, tunnel, or bridge style.
-- To add a region, add its definition and matching presentation copy. Add a terrain type/color and optional landmark drawing in `src/rendering/drawMap.ts` when it needs a new visual identity.
+Tests run against the actual TypeScript source with Node's test runner. They cover progression, calibrated practice mechanics, maze reachability/hazards, conversational routes and consequences, map gestures, stairs/collision, and defensive save restoration. GitHub Pages runs these checks before publishing changes to `main`.
 
-## Pixel-art atlases
+Local-only review entrances include `?qa=map`, `?qa=interior&area=tower`, and `?qa=red-dot`, `trauma`, `inn`, `lagoon`, or `chasm`. These routes are excluded from production and do not write saved journeys.
 
-The game ships with two transparent 4×4 PNG atlases in `public/assets/`:
+## Editing the landscape
 
-- `meditator-wizard-atlas.png`: directional walking frames, with down/right/left/up as rows.
-- `landmarks-atlas.png`: region landmarks plus bridge, station, and wilderness props.
-- `terrain-atlas.png`: sixteen repeating ground materials for wilderness and region biomes.
+| Concern | Source |
+| --- | --- |
+| Shared regions and shapes | `src/data/mapRegions.ts` |
+| Sprite anchors and label placement | `src/data/regionVisuals.ts` |
+| Region lore and subtle source links | `src/data/presentationContent.ts`, `presentationReferences.ts` |
+| Routes and their teaching content | `src/data/routes.ts`, `pathContent.ts` |
+| Walkable interior floors, zones, travelers | `src/data/interiorMaps.ts` |
+| Optional discoveries in the terrain | `src/data/mapProps.ts` |
+| Inn dialogue graph | `src/data/quarrelsomeConversations.ts` |
+| Progression, practice, maze, conversation consequences | `src/game/` |
+| Map gestures, camera, collisions, stair arrivals | `src/engine/` |
+| Pixel artwork, terrain caches, social interiors | `src/rendering/`, `public/assets/` |
 
-Atlas loading and cell drawing live in `src/rendering/pixelArtAssets.ts`. Terrain and landmark assignments, transition rims, and world-prop placement live in `src/rendering/drawMap.ts`.
+Keep geometry in the shared world data so sandbox and game stay aligned. Artwork is loaded on demand and static terrain is cached separately from moving characters. Preserve the established pixel scale, strong silhouettes, restrained palette, and recognizable terrain when adding art. The historical `ChelleyMode` experiment is separate; `main` uses the static landscape with discovery and progression.
 
-## Replacing the procedural art
-
-Rendering is separated from world data. Replace either PNG atlas while preserving its 4×4 cell layout, or update the cell assignments in the rendering modules. Procedural drawing remains as a loading/error fallback. Coordinates and interactions stay unchanged, so art can evolve without rewriting the map or content.
-
-Future collision, quests, inventory, and scene transitions belong in focused modules under `src/engine/` rather than the React UI.
+See [the Inn review](docs/inn-review.md) for route coverage and conversation design rules.
