@@ -1,5 +1,6 @@
 /* Shared chrome. Scene interiors and minigames own their own headers. */
 .world-surface { position: absolute; inset: 0; }
+.atlas-surface { top: 76px; }
 .red-dot-game .practice-meter { margin-left: 0; margin-right: 0; max-width: 100%; }
 .trauma-labyrinth .maze-frame { max-width: 100%; }
 @media (max-width: 700px), (max-height: 690px) {
@@ -55,6 +56,7 @@ button:focus-visible, summary:focus-visible, a:focus-visible, input:focus-visibl
 .exploration-options input { flex: none; width: 20px; height: 20px; }
 .exploration-options small { color: #b6a28a; font: 16px/1.2 'VT323', monospace; }
 @media (max-width: 760px) {
+  .atlas-surface { top: max(66px, calc(env(safe-area-inset-top) + 54px)); }
   .game-hud { top: max(66px, calc(env(safe-area-inset-top) + 54px)); left: 10px; width: min(288px, calc(100vw - 20px)); padding: 7px 10px; }
   .game-hud .meter { grid-template-columns: 101px 1fr 25px; margin: 4px 0; }
   .game-hud .meter span { font-size: 6px; }

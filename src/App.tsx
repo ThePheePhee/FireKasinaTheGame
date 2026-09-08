@@ -159,7 +159,7 @@ export default function App() {
   </main>;
 
   return <main className={`game experience-${experience}`}>
-    {!sceneOpen && <div className="world-surface" inert={blocked}>
+    {!sceneOpen && <div className={`world-surface ${view === 'presentation' ? 'atlas-surface' : ''}`} inert={blocked}>
       <SceneBoundary onRecover={returnToTitle}>
         {view === 'player' ? <PlayerMode player={isGame ? gamePlayer : sandboxPlayer} dialogue={blocked} discoveredRegions={isGame ? gameDiscovered : sandboxDiscovered} onDiscover={selectRegion} onDiscoverProp={selectProp} game={isGame ? {stats: gameStats, discovery: gameDiscovery, onStatsChange: onGameStatsChange, onPractice: openPractice, explorationAssists: assists} : undefined}/> : <MapMode onSelectRegion={selectRegion} onSelectRoute={selectRoute} onSelectProp={selectProp} onClear={clearSelection}/>}
       </SceneBoundary>
@@ -167,7 +167,7 @@ export default function App() {
     {!sceneOpen && <>
       <header inert={!!selection || menu}><div><b>FIRE KASINA</b><span>{isGame ? 'GAME MODE · YOUR JOURNEY' : 'SANDBOX · THE MAP OF YOU'}</span></div><nav aria-label={isGame ? 'Game menu' : 'Sandbox view'}>{!isGame && <><button className={view === 'player' ? 'active' : ''} aria-pressed={view === 'player'} onClick={() => { setSandboxView('player'); clearSelection(); }}>♟ PLAYER</button><button className={view === 'presentation' ? 'active' : ''} aria-pressed={view === 'presentation'} onClick={() => { setSandboxView('presentation'); clearSelection(); }}>⌖ MAP</button></>}<button onClick={() => { setMenu(true); if (isGame) save(); }}>MENU</button></nav></header>
       {isGame && <div inert={!!selection || menu}><GameHud stats={gameStats} mistOverride={assists.mist} fairyOverride={assists.fairy} onMistOverride={checked => toggleAssist('mist', checked)} onFairyOverride={checked => toggleAssist('fairy', checked)}/></div>}
-      <aside className="help">{view === 'player' ? <>MOVE <kbd>WASD</kbd> <kbd>↑↓←→</kbd> · <kbd>ESC</kbd> MENU</> : <>TAP REGIONS & PATHS · DRAG · PINCH</>}</aside>
+      {view === 'player' && <aside className="help">MOVE <kbd>WASD</kbd> <kbd>↑↓←→</kbd> · <kbd>ESC</kbd> MENU</aside>}
       {saveFailed && <p className="save-warning" role="status">Saving is unavailable in this browser. Keep this tab open to keep your journey.</p>}
     </>}
     {region && <LoreDialog title={region.name} eyebrow={view === 'player' ? 'TRAVELER’S JOURNAL' : 'MAP LORE'} onClose={clearSelection}>
