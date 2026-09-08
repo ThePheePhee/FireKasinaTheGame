@@ -11,6 +11,7 @@ import {drawMap} from '../rendering/drawMap';
 import {drawPlayer} from '../rendering/drawPlayer';
 import {drawVignette} from '../rendering/drawUI';
 import './PlayerMode.css';
+import InteractionPrompt from './InteractionPrompt';
 
 export interface GameRules {
  stats:GameStats;discovery:MutableRefObject<DiscoveryPoint[]>;
@@ -29,22 +30,21 @@ const noAssists:ExplorationAssists={mist:false,fairy:false};
 export default function PlayerMode({player,dialogue,discoveredRegions,onDiscover,onDiscoverProp,game}:PlayerModeProps){
  const canvasRef=useRef<HTMLCanvasElement>(null),keys=useRef(new Set<string>()),activeRegion=useRef<string|null>(null),activeProp=useRef<string|null>(null);
  const gameRef=useRef(game),statsRef=useRef(game?{...game.stats}:undefined),lastPublish=useRef(0),warpRemaining=useRef(12),lastDiscoveryPosition=useRef({x:player.current.x,y:player.current.y});
- const [notice,setNotice]=useState<Region|null>(null),[propNotice,setPropNotice]=useState<MapProp|null>(null),[currentRegion,setCurrentRegion]=useState<Region|null>(null),[warning,setWarning]=useState<string|null>(null);
+ const [notice,setNotice]=useState<Region|null>(null),[currentProp,setCurrentProp]=useState<MapProp|null>(null),[currentRegion,setCurrentRegion]=useState<Region|null>(null),[warning,setWarning]=useState<string|null>(null);
  gameRef.current=game;
  useEffect(()=>{statsRef.current=game?{...game.stats}:undefined},[game?.stats]);
  const resize=useCallback(()=>{const canvas=canvasRef.current;if(!canvas)return;const d=Math.min(devicePixelRatio||1,2),box=canvas.getBoundingClientRect();canvas.width=Math.round(box.width*d);canvas.height=Math.round(box.height*d)},[]);
  useEffect(()=>{resize();window.addEventListener('resize',resize);return()=>window.removeEventListener('resize',resize)},[resize]);
- useEffect(()=>{if(!notice&&!propNotice)return;const timer=window.setTimeout(()=>{setNotice(null);setPropNotice(null)},6000);return()=>clearTimeout(timer)},[notice,propNotice]);
  useEffect(()=>{if(!warning)return;const timer=window.setTimeout(()=>setWarning(null),4200);return()=>clearTimeout(timer)},[warning]);
  useEffect(()=>{if(dialogue)keys.current.clear()},[dialogue]);
  useEffect(()=>{
   const normalize=(key:string)=>key.toLowerCase().startsWith('arrow')?key:key.toLowerCase();
-  const down=(event:KeyboardEvent)=>{if(dialogue||event.ctrlKey||event.metaKey||event.altKey)return;const key=normalize(event.key);if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','w','a','s','d'].includes(key)){event.preventDefault();keys.current.add(key)}};
+  const down=(event:KeyboardEvent)=>{if(dialogue||event.ctrlKey||event.metaKey||event.altKey||(event.target as HTMLElement).closest('input,textarea,select,[contenteditable="true"]'))return;const key=normalize(event.key);if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','w','a','s','d'].includes(key)){event.preventDefault();keys.current.add(key)}else if(key==='e'&&!event.repeat){event.preventDefault();keys.current.clear();if(currentProp)onDiscoverProp(currentProp);else if(currentRegion)onDiscover(currentRegion)}};
   const up=(event:KeyboardEvent)=>keys.current.delete(normalize(event.key));
   const clear=()=>keys.current.clear();
   window.addEventListener('keydown',down);window.addEventListener('keyup',up);window.addEventListener('blur',clear);document.addEventListener('visibilitychange',clear);
   return()=>{window.removeEventListener('keydown',down);window.removeEventListener('keyup',up);window.removeEventListener('blur',clear);document.removeEventListener('visibilitychange',clear)};
- },[dialogue]);
+ },[dialogue,currentProp,currentRegion,onDiscover,onDiscoverProp]);
  useEffect(()=>{
   let frame=0,last=performance.now();
   const tick=(now:number)=>{
@@ -88,7 +88,7 @@ export default function PlayerMode({player,dialogue,discoveredRegions,onDiscover
    }
    let openedRegion=false;
    if(!paused&&entered?.id!==(activeRegion.current??undefined)){
-    activeRegion.current=entered?.id??null;setCurrentRegion(entered);setNotice(null);setPropNotice(null);
+    activeRegion.current=entered?.id??null;setCurrentRegion(entered);setNotice(null);
     if(entered){if(discoveredRegions.current.has(entered.id))setNotice(entered);else{
      discoveredRegions.current.add(entered.id);
      if(rules&&inMist&&statsRef.current){statsRef.current.clarity=clampMeter(statsRef.current.clarity+(entered.id==='mist'?3:8));rules.discovery.current.push({x:entered.x,y:entered.y,radius:Math.min(105,regionExtent(entered)+35)});rules.onStatsChange({...statsRef.current})}
@@ -96,7 +96,7 @@ export default function PlayerMode({player,dialogue,discoveredRegions,onDiscover
     }}
    }
    if(!paused&&!openedRegion){const found=mapProps.find(prop=>Math.hypot(player.current.x-prop.x,player.current.y-prop.y)<Math.max(34,prop.size*.45))??null;
-    if(found?.id!==(activeProp.current??undefined)){activeProp.current=found?.id??null;if(found){const id=`prop:${found.id}`;if(discoveredRegions.current.has(id))setPropNotice(found);else{discoveredRegions.current.add(id);keys.current.clear();onDiscoverProp(found)}}}
+    if(found?.id!==(activeProp.current??undefined)){activeProp.current=found?.id??null;setCurrentProp(found);if(found){const id=`prop:${found.id}`;if(!discoveredRegions.current.has(id)){discoveredRegions.current.add(id);keys.current.clear();onDiscoverProp(found)}}}
    }
    const camera=playerCamera(player.current.x,player.current.y,width,height,WORLD.width,WORLD.height);
    ctx.setTransform(d,0,0,d,0,0);ctx.imageSmoothingEnabled=false;ctx.clearRect(0,0,width,height);ctx.save();ctx.translate(-camera.x,-camera.y);
@@ -108,9 +108,9 @@ export default function PlayerMode({player,dialogue,discoveredRegions,onDiscover
   frame=requestAnimationFrame(tick);return()=>cancelAnimationFrame(frame);
  },[dialogue,discoveredRegions,onDiscover,onDiscoverProp,player]);
  const virtualKey=(key:string,pressed:boolean)=>{if(pressed&&!dialogue)keys.current.add(key);else keys.current.delete(key)};
- const openLore=(region:Region)=>{setNotice(null);setPropNotice(null);keys.current.clear();onDiscover(region)};
+ const openLore=(region:Region)=>{setNotice(null);keys.current.clear();onDiscover(region)};
  return <div className="player-mode"><canvas ref={canvasRef} tabIndex={0} aria-label="Explore the landscape with arrow keys or the movement buttons"/><div className="dpad" aria-label="Touch movement controls">{(['up','left','down','right'] as const).map(direction=>{const key=direction==='up'?'w':direction==='left'?'a':direction==='down'?'s':'d';return <button key={direction} className={direction} aria-label={`Move ${direction}`} onPointerDown={event=>{event.preventDefault();event.currentTarget.setPointerCapture(event.pointerId);virtualKey(key,true)}} onPointerUp={()=>virtualKey(key,false)} onPointerCancel={()=>virtualKey(key,false)} onLostPointerCapture={()=>virtualKey(key,false)}>{direction==='up'?'▲':direction==='left'?'◀':direction==='down'?'▼':'▶'}</button>})}</div>
-  {propNotice&&!dialogue?<button type="button" className="area-notice" onClick={()=>{setPropNotice(null);keys.current.clear();onDiscoverProp(propNotice)}}><small>A FAMILIAR CURIOSITY</small><b>{propNotice.name}</b><span>TAP FOR LORE →</span></button>:notice&&!dialogue?<button type="button" className="area-notice" aria-label={`Open lore for ${notice.name}`} onClick={()=>openLore(notice)}><small>AREA REVISITED</small><b>{notice.name}</b><span>TAP FOR LORE →</span></button>:currentRegion&&!dialogue&&<button type="button" className="lore-journal" onClick={()=>openLore(currentRegion)}>◆ AREA LORE</button>}
+  {!dialogue&&(currentProp?<InteractionPrompt title={currentProp.name} eyebrow="A CURIOUS FIND" action="EXAMINE" onActivate={()=>{keys.current.clear();onDiscoverProp(currentProp)}}/>:currentRegion&&<InteractionPrompt title={currentRegion.name} eyebrow={notice?'AREA REVISITED':'YOU ARE HERE'} kind={currentRegion.id==='library'?'book':'lore'} action="EXPLORE THIS PLACE" onActivate={()=>openLore(currentRegion)}/>)}
   {warning&&!dialogue&&<div className="mist-warning" role="status">{warning}</div>}
  </div>;
 }

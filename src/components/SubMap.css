@@ -8,3 +8,4 @@
 .floor-tabs button{flex-shrink:0}
 .floor-tabs{scrollbar-width:thin;scrollbar-color:#8e7651 #1d1a24;overscroll-behavior-x:contain}
 .submap-header button,.floor-tabs button,.submap-exit{min-height:44px}
+.submap-lore-mark{position:absolute;display:grid;place-items:center;width:44px;height:44px;transform:translate(-50%,-50%);pointer-events:auto}.submap-lore-mark:before{content:'';position:absolute;inset:8px;border:1px solid #c7a971;background:#282130;box-shadow:2px 2px #121119}.submap-lore-mark .interaction-icon{transform:scale(.58);pointer-events:none}.submap-zone-layer button:hover .submap-lore-mark:before,.submap-zone-layer button:focus-visible .submap-lore-mark:before{border-color:#fff0b0;background:#604735}

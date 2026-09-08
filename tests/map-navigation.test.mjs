@@ -6,8 +6,9 @@ import {playerCamera} from '../src/engine/camera.ts';
 import {interiorArrival,upStairs,downStairs,slideAlongObstacles} from '../src/engine/interiorNavigation.ts';
 import {interiorMaps} from '../src/data/interiorMaps.ts';
 import {mapRegions} from '../src/data/mapRegions.ts';
-import {regionVisuals} from '../src/data/regionVisuals.ts';
+import {fairyDecorations,regionVisuals} from '../src/data/regionVisuals.ts';
 import {mapProps,ambientProps} from '../src/data/mapProps.ts';
+import {routes} from '../src/data/routes.ts';
 
 const bounds={width:1000,height:1000},screen={width:400,height:400};
 const close=(actual,expected)=>assert(Math.abs(actual-expected)<1e-8,`${actual} should equal ${expected}`);
@@ -103,9 +104,34 @@ test('map labels and landmark sprites have separate space across the shared land
   boxes.push({id:region.id,kind:'label',x:region.x+lx-width/2,y:region.y+ly-2,w:width,h:lines.length*18+4});
   if(size)boxes.push({id:region.id,kind:'sprite',x:region.x+ax-size/2,y:region.y+ay-size/2,w:size,h:size});
  }
- for(const prop of [...mapProps,...ambientProps])boxes.push({id:prop.id??`ambient-${prop.x}`,kind:'prop',x:prop.x-prop.size/2,y:prop.y-prop.size/2,w:prop.size,h:prop.size});
+ for(const prop of [...mapProps,...ambientProps,...fairyDecorations])boxes.push({id:prop.id??`ambient-${prop.x}`,kind:'prop',x:prop.x-prop.size/2,y:prop.y-prop.size/2,w:prop.size,h:prop.size});
  for(let i=0;i<boxes.length;i++)for(let j=i+1;j<boxes.length;j++){
   const a=boxes[i],b=boxes[j];if(a.id===b.id)continue;
   assert(!(a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y),`${a.id} ${a.kind} overlaps ${b.id} ${b.kind}`);
+ }
+});
+
+test('each route marker sits on its actual road and remains clear of map artwork',()=>{
+ const excluded=[];
+ for(const region of mapRegions){
+  const visual=regionVisuals[region.id]??{},[ax,ay]=visual.artOffset??[0,0],[lx,ly]=visual.labelOffset??[0,75],size=visual.artSize??0,lines=visual.labelLines??[region.name];
+  const width=Math.max(...lines.map(line=>line.length))*(visual.labelSize??16)*.62+8;
+  excluded.push({x:region.x+lx-width/2,y:region.y+ly-2,w:width,h:lines.length*18+4});
+  if(size)excluded.push({x:region.x+ax-size/2,y:region.y+ay-size/2,w:size,h:size});
+ }
+ for(const prop of [...mapProps,...ambientProps,...fairyDecorations])excluded.push({x:prop.x-prop.size/2,y:prop.y-prop.size/2,w:prop.size,h:prop.size});
+ for(const route of routes){
+  const [x,y]=route.labelAt;
+  const onRoad=route.points.slice(1).some(([bx,by],index)=>{const [ax,ay]=route.points[index],dx=bx-ax,dy=by-ay,length=dx*dx+dy*dy,t=Math.max(0,Math.min(1,((x-ax)*dx+(y-ay)*dy)/(length||1)));return Math.hypot(x-ax-dx*t,y-ay-dy*t)<.01});
+  assert(onRoad,`${route.name} marker floats away from its road`);
+  assert(!excluded.some(box=>x>box.x-4&&x<box.x+box.w+4&&y>box.y-4&&y<box.y+box.h+4),`${route.name} marker covers a landmark or label`);
+ }
+});
+
+test('presentation changes preserve the requested destination and homestead connections',()=>{
+ const connections={artificer:['fireworks','magical'],ascent:['magical','healing','celestial'],mending:['trauma','life-recall','healing'],vanishing:['jhana','formless'],siddhi:['jhana','tower','magical'],reappearance:['formless','celestial'],middle:['tower','garden'],'library-lane':['house','library'],'fortification-road':['red-dot','fortification-tavern']};
+ for(const [id,regions] of Object.entries(connections)){
+  const route=routes.find(item=>item.id===id);assert(route,`missing ${id}`);
+  for(const id of regions){const region=mapRegions.find(item=>item.id===id);assert(route.points.some(([x,y])=>Math.hypot(x-region.x,y-region.y)<.01),`${route.name} no longer reaches ${region.name}`)}
  }
 });

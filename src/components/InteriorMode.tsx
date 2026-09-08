@@ -6,8 +6,11 @@ import {drawVignette} from '../rendering/drawUI';
 import {playerCamera} from '../engine/camera';
 import {downStairs as downPoint,upStairs as upPoint,interiorArrival,slideAlongObstacles} from '../engine/interiorNavigation';
 import LoreDialog from './LoreDialog';
+import LoreLinks from './LoreLinks';
+import InteractionPrompt,{InteractionIcon} from './InteractionPrompt';
+import {interiorEntry,nearbyInteriorZone,interactionAnchor,interactionKind} from '../engine/interiorInteraction';
+import {drawInteractionMarker} from '../rendering/drawInteractionMarker';
 import './InteriorMode.css';
-import './InteriorNotifications.css';
 import './InteriorHeaderFix.css';
 import './SocialInteriors.css';
 import {getAtlas,onPixelArtReady} from '../rendering/pixelArtAssets';
@@ -15,8 +18,6 @@ import {drawInteriorNpc,drawInteriorNpcLabel,drawSocialForeground,drawSocialInte
 
 const palette={tower:['#111827','#28364b','#63718a','#d7c281'],fireworks:['#170d18','#481724','#96352e','#ffae38'],magick:['#11142b','#282954','#665b91','#c990df'],jhana:['#102126','#24464a','#64826d','#d2c981'],divine:['#252d49','#655b85','#a783a7','#f3db9a'],formless:['#03050d','#0d1228','#282a54','#8189c8'],healing:['#183229','#315c43','#70a66b','#d7d68e'],recall:['#21182a','#4b3b56','#86738e','#e2c589'],tavern:['#201710','#493322','#8a5a31','#efbd68'],library:['#171411','#3b2c22','#8b693f','#efce82']} as const;
 const themeColumn={tower:0,fireworks:3,magick:2,jhana:4,divine:5,formless:5,healing:4,recall:0,tavern:3,library:0};
-const zoneContains=(z:InteriorZone,x:number,y:number)=>z.shape==='circle'?Math.hypot((x-z.x)/(z.w*.625),(y-z.y)/(z.h*.625))<=1:Math.abs(x-z.x)<=z.w*.625&&Math.abs(y-z.y)<=z.h*.625;
-const floorEntry=(map:InteriorMap,floor:InteriorFloor):InteriorZone=>({...floor.zones[0],id:`entry-${floor.id}`,name:floor.name,copy:`You have entered ${map.name}. ${floor.subtitle}.`});
 const atlasCell=(ctx:CanvasRenderingContext2D,image:HTMLImageElement,column:number,row:number,x:number,y:number,size:number,alpha=1)=>{const w=image.naturalWidth/6,h=image.naturalHeight/4;ctx.save();ctx.globalAlpha=alpha;ctx.drawImage(image,column*w,row*h,w,h,x-size/2,y-size/2,size,size);ctx.restore()};
 const recallCell=(ctx:CanvasRenderingContext2D,image:HTMLImageElement,column:number,x:number,y:number,size:number,alpha=1)=>{const w=image.naturalWidth/4,h=image.naturalHeight;ctx.save();ctx.globalAlpha=alpha;ctx.drawImage(image,column*w,0,w,h,x-size/2,y-size/2,size,size);ctx.restore()};
 function drawAtmosphere(ctx:CanvasRenderingContext2D,theme:InteriorMap['theme'],width:number,height:number,time:number){const colors=palette[theme];ctx.save();ctx.globalAlpha=theme==='formless'?.5:.28;for(let i=0;i<32;i++){const x=(i*347+83)%width,y=(i*193+Math.sin(time/1700+i)*18+height)%height,s=2+(i%4);ctx.fillStyle=i%3?colors[3]:colors[2];ctx.beginPath();if(theme==='divine'||theme==='healing'){ctx.ellipse(x,y,s*1.8,s*.75,i*.7,0,Math.PI*2)}else if(theme==='magick'){ctx.arc(x,y,s*1.5,0,Math.PI*2);ctx.moveTo(x-s*3,y);ctx.lineTo(x+s*3,y);ctx.moveTo(x,y-s*3);ctx.lineTo(x,y+s*3);ctx.strokeStyle=ctx.fillStyle;ctx.stroke()}else if(theme==='tower'){ctx.rect(x-s,y-s,s*2,s*2)}else if(theme==='fireworks'){ctx.moveTo(x,y-s*3);ctx.lineTo(x+s,y+s);ctx.lineTo(x-s,y+s)}else if(theme==='jhana'){ctx.arc(x,y,s*2,Math.PI,Math.PI*2)}else{ctx.moveTo(x,y-s*2);ctx.lineTo(x+s,y);ctx.lineTo(x,y+s*2);ctx.lineTo(x-s,y)}ctx.fill()}ctx.restore()}
@@ -52,13 +53,13 @@ interface RuntimeNpc {data:InteriorNpc;x:number;y:number;angle:number;changeAt:n
 const npcZone=(runtime:RuntimeNpc):InteriorZone=>({id:`npc-${runtime.data.id}`,name:runtime.data.name,copy:runtime.data.copy,x:runtime.x,y:runtime.y,w:90,h:90,shape:'circle',art:[0,0],references:runtime.data.references});
 
 export default function InteriorMode({map,onExit}:{map:InteriorMap;onExit:()=>void}){
- const canvasRef=useRef<HTMLCanvasElement>(null),scene=useRef<HTMLCanvasElement|null>(null),keys=useRef(new Set<string>());
+ const canvasRef=useRef<HTMLCanvasElement>(null),scene=useRef<HTMLCanvasElement|null>(null),keys=useRef(new Set<string>()),markerViewport=useRef<HTMLDivElement>(null),markerSpace=useRef<HTMLDivElement>(null),markerButton=useRef<HTMLButtonElement>(null);
  const player=useRef<Player>({x:map.floors[0].spawn[0],y:map.floors[0].spawn[1],direction:'up',moving:false,step:0});
  const activeZone=useRef<string|null>(null),transitionLock=useRef(0),npcs=useRef<RuntimeNpc[]>([]),arrival=useRef<'outside'|'below'|'above'>('outside');
- const [floorIndex,setFloorIndex]=useState(0),[dialogue,setDialogue]=useState<InteriorZone|null>(null),[notice,setNotice]=useState<InteriorZone|null>(()=>floorEntry(map,map.floors[0])),[lastDiscovery,setLastDiscovery]=useState<InteriorZone|null>(null);
+ const [floorIndex,setFloorIndex]=useState(0),[dialogue,setDialogue]=useState<InteriorZone|null>(null),[notice,setNotice]=useState<InteriorZone|null>(()=>interiorEntry(map,map.floors[0])),[lastDiscovery,setLastDiscovery]=useState<InteriorZone|null>(null),[nearby,setNearby]=useState<InteriorZone|null>(null);
  const [landmarks,setLandmarks]=useState<HTMLImageElement|null>(null),[tiles,setTiles]=useState<HTMLImageElement|null>(null),[special,setSpecial]=useState<HTMLImageElement|null>(null),[legacy,setLegacy]=useState<HTMLImageElement|null>(null),[artRevision,setArtRevision]=useState(0);
  const floor=map.floors[floorIndex]??map.floors[0];
- const resize=useCallback(()=>{const c=canvasRef.current;if(!c)return;const headerHeight=c.parentElement?.querySelector('header')?.getBoundingClientRect().height??76;c.style.top=`${headerHeight}px`;c.style.height=`calc(100% - ${headerHeight}px)`;const d=Math.min(devicePixelRatio||1,2),b=c.getBoundingClientRect();c.width=Math.round(b.width*d);c.height=Math.round(b.height*d)},[]);
+ const resize=useCallback(()=>{const c=canvasRef.current;if(!c)return;const headerHeight=c.parentElement?.querySelector('header')?.getBoundingClientRect().height??76;c.style.top=`${headerHeight}px`;c.style.height=`calc(100% - ${headerHeight}px)`;if(markerViewport.current)markerViewport.current.style.top=`${headerHeight}px`;const d=Math.min(devicePixelRatio||1,2),b=c.getBoundingClientRect();c.width=Math.round(b.width*d);c.height=Math.round(b.height*d)},[]);
  const openLore=useCallback((zone:InteriorZone)=>{keys.current.clear();setDialogue(zone);setNotice(null)},[]);
  useEffect(()=>{
   let active=true;
@@ -73,19 +74,19 @@ export default function InteriorMode({map,onExit}:{map:InteriorMap;onExit:()=>vo
    if(dialogue||event.altKey||event.ctrlKey||event.metaKey||(event.target as HTMLElement).closest('input,textarea,select,[contenteditable="true"]'))return;
    const key=event.key.toLowerCase();
    if(['arrowup','arrowdown','arrowleft','arrowright','w','a','s','d'].includes(key)){event.preventDefault();keys.current.add(key.startsWith('arrow')?event.key:key)}
-   if(key==='e'&&lastDiscovery){event.preventDefault();openLore(lastDiscovery)}
+   if(key==='e'&&!event.repeat&&(nearby??lastDiscovery)){event.preventDefault();openLore((nearby??lastDiscovery)!)}
    if(event.key==='Escape'){event.preventDefault();onExit()}
   };
   const up=(event:KeyboardEvent)=>keys.current.delete(event.key.toLowerCase().startsWith('arrow')?event.key:event.key.toLowerCase());
   const clear=()=>keys.current.clear();
   addEventListener('keydown',down);addEventListener('keyup',up);addEventListener('blur',clear);document.addEventListener('visibilitychange',clear);
   return()=>{removeEventListener('keydown',down);removeEventListener('keyup',up);removeEventListener('blur',clear);document.removeEventListener('visibilitychange',clear)};
- },[dialogue,lastDiscovery,onExit,openLore]);
+ },[dialogue,lastDiscovery,nearby,onExit,openLore]);
  useEffect(()=>{
-  const start=interiorArrival(floor,arrival.current),entry=floorEntry(map,floor);
+  const start=interiorArrival(floor,arrival.current),entry=interiorEntry(map,floor);
   player.current={x:start[0],y:start[1],direction:'up',moving:false,step:0};
   npcs.current=(floor.npcs??[]).map((data,index)=>({data,x:data.x,y:data.y,angle:index*1.7,changeAt:performance.now()+900+index*370}));
-  activeZone.current=null;keys.current.clear();setNotice(entry);setLastDiscovery(entry);transitionLock.current=performance.now()+850;
+  activeZone.current=null;keys.current.clear();setNearby(null);setNotice(entry);setLastDiscovery(entry);transitionLock.current=performance.now()+850;
  },[floor,map]);
  useEffect(()=>{if(!notice)return;const timer=window.setTimeout(()=>setNotice(current=>current?.id===notice.id?null:current),6500);return()=>clearTimeout(timer)},[notice]);
  useEffect(()=>{
@@ -108,8 +109,8 @@ export default function InteriorMode({map,onExit}:{map:InteriorMap;onExit:()=>vo
     if(blocked){npc.angle+=Math.PI*.8;npc.changeAt=now+700}else{npc.x=tx;npc.y=ty}
    }
    const p=player.current,nearNpc=npcs.current.filter(npc=>Math.hypot(p.x-npc.x,p.y-npc.y)<185).sort((a,b)=>Math.hypot(p.x-a.x,p.y-a.y)-Math.hypot(p.x-b.x,p.y-b.y))[0];
-   const entered=nearNpc?npcZone(nearNpc):floor.zones.find(zone=>zoneContains(zone,p.x,p.y))??null;
-   if(!dialogue&&entered?.id!==(activeZone.current??undefined)){activeZone.current=entered?.id??null;if(entered){setNotice(entered);setLastDiscovery(entered)}}
+   const entered=nearNpc?npcZone(nearNpc):nearbyInteriorZone(floor.zones,p.x,p.y);
+   if(!dialogue&&entered?.id!==(activeZone.current??undefined)){activeZone.current=entered?.id??null;setNearby(entered);setNotice(null);if(entered)setLastDiscovery(entered)}
    if(now>transitionLock.current&&!dialogue){
     const up=upPoint(floor),down=downPoint(floor);
     if(Math.hypot(p.x-up[0],p.y-up[1])<48&&floorIndex<map.floors.length-1){transitionLock.current=now+1000;arrival.current='below';setFloorIndex(index=>index+1)}
@@ -123,23 +124,27 @@ export default function InteriorMode({map,onExit}:{map:InteriorMap;onExit:()=>vo
    for(const npc of npcs.current)drawInteriorNpc(ctx,npc.data,npc.x,npc.y,now,false);
    drawSocialForeground(ctx,floor,p.y,'behind');drawPlayer(ctx,p);drawSocialForeground(ctx,floor,p.y,'ahead');
    for(const npc of npcs.current)drawInteriorNpcLabel(ctx,npc.data,npc.x,npc.y);
+   if(!dialogue){for(const zone of floor.zones)if(zone.id!==entered?.id)drawInteractionMarker(ctx,zone,floor.environment);for(const npc of npcs.current){const zone=npcZone(npc);if(zone.id!==entered?.id)drawInteractionMarker(ctx,zone,floor.environment)}}
+   if(markerSpace.current)markerSpace.current.style.transform=`translate(${-camera.x}px,${-camera.y}px)`;
+   if(markerButton.current&&entered){const [x,y]=interactionAnchor(entered,floor.environment);markerButton.current.style.left=`${x}px`;markerButton.current.style.top=`${y}px`}
    ctx.restore();drawVignette(ctx,w,h);frame=requestAnimationFrame(tick);
   };
   frame=requestAnimationFrame(tick);return()=>cancelAnimationFrame(frame);
  },[dialogue,floor,floorIndex,map,onExit]);
  const virtualKey=(key:string,pressed:boolean)=>pressed?keys.current.add(key):keys.current.delete(key);
  const links=dialogue?.references??(dialogue?.reference?[dialogue.reference]:[]);
+ const prompt=nearby??notice??lastDiscovery,kind=prompt?interactionKind(prompt):'lore',action=kind==='talk'?'TALK':nearby&&floor.environment==='library'?'BROWSE SHELVES':nearby?'READ FIELD NOTES':'READ JOURNAL';
  return <section className={`interior-mode theme-${map.theme}`}>
   <canvas ref={canvasRef} tabIndex={0} aria-label={`${floor.name}. Move with arrow keys or WASD; press E for nearby lore.`}/>
+  <div ref={markerViewport} className="world-interaction-viewport"><div ref={markerSpace} className="world-interaction-space">{nearby&&!dialogue&&<button ref={markerButton} type="button" className="world-interaction-badge" aria-label={`${action}: ${nearby.name}`} onClick={()=>openLore(nearby)}><InteractionIcon kind={kind}/><span>{kind==='talk'?'TALK':'READ'}</span><kbd>E</kbd></button>}</div></div>
   <header><button type="button" onClick={onExit}>← MAIN MAP</button><div><small>{map.name}</small><b>{floor.name}</b><span>{floor.subtitle}</span></div><em>{floorIndex+1}/{map.floors.length}</em></header>
   <div className="interior-dpad" aria-label="Touch movement controls">{(['up','left','down','right'] as const).map(direction=>{
    const key=direction==='up'?'w':direction==='left'?'a':direction==='down'?'s':'d';
    return <button type="button" key={direction} className={direction} aria-label={`Move ${direction}`} onPointerDown={event=>{event.preventDefault();event.currentTarget.setPointerCapture(event.pointerId);virtualKey(key,true)}} onPointerUp={()=>virtualKey(key,false)} onPointerCancel={()=>virtualKey(key,false)} onLostPointerCapture={()=>virtualKey(key,false)}>{direction==='up'?'▲':direction==='left'?'◀':direction==='down'?'▼':'▶'}</button>;
   })}</div>
-  {lastDiscovery&&!notice&&!dialogue&&<button type="button" className="lore-journal" onClick={()=>openLore(lastDiscovery)}>◆ LORE · E</button>}
-  {notice&&!dialogue&&<button type="button" className="area-notice" aria-label={`Open lore for ${notice.name}`} onClick={()=>openLore(notice)}><small>{notice.id.startsWith('npc-')?'TRAVELLER NEARBY':'NEW AREA ENTERED'}</small><b>{notice.name}</b><span>{notice.id.startsWith('npc-')?'TAP TO TALK':'TAP FOR LORE'} →</span></button>}
+  {prompt&&!dialogue&&<InteractionPrompt title={prompt.name} kind={kind} action={action} eyebrow={nearby?kind==='talk'?'TRAVELLER NEARBY':floor.environment==='library'?'READING SHELF':'A PLACE TO EXPLORE':notice?'NEW AREA ENTERED':'TRAVELLER’S JOURNAL'} remembered={!nearby&&!notice} onActivate={()=>openLore(prompt)}/>}
   {dialogue&&<LoreDialog title={dialogue.name} eyebrow={dialogue.id.startsWith('npc-')?'TRAVELLER SAYS':'PLACE LORE'} onClose={()=>setDialogue(null)}>
-   <p className="copy">◆ {dialogue.copy}</p>{links.length>0&&<nav className="lore-links">{links.map(link=><a key={link.label} href={link.url} target="_blank" rel="noreferrer">{link.label} ↗</a>)}</nav>}
+   <p className="copy">◆ {dialogue.copy}</p><LoreLinks links={links} title={floor.environment==='library'?'CHOOSE A VOLUME':'FIELD NOTES'}/>
   </LoreDialog>}
  </section>;
 }

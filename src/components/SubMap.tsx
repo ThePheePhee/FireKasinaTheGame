@@ -6,6 +6,9 @@ import {onPixelArtReady} from '../rendering/pixelArtAssets';
 import {useMapNavigation} from '../engine/useMapNavigation';
 import {worldToScreen} from '../engine/mapViewport';
 import LoreDialog from './LoreDialog';
+import LoreLinks from './LoreLinks';
+import {InteractionIcon} from './InteractionPrompt';
+import {interactionAnchor,interactionKind} from '../engine/interiorInteraction';
 import './SubMap.css';
 
 export default function SubMap({map,onExit}:{map:InteriorMap;onExit:()=>void}){
@@ -45,11 +48,11 @@ export default function SubMap({map,onExit}:{map:InteriorMap;onExit:()=>void}){
   <nav className="floor-tabs" aria-label="Area levels">{map.floors.map((item,index)=><button type="button" key={item.id} aria-current={index===floorIndex?'page':undefined} className={index===floorIndex?'active':''} onClick={()=>{setFloorIndex(index);setSelected(null)}}>{item.name}</button>)}</nav>
   <div ref={containerRef} className="submap-map" {...bindings}>
    <canvas ref={canvasRef} aria-hidden="true"/>
-   <div className="submap-zone-layer">{clickables.map(zone=>{const point=worldToScreen(viewport,zone.x,zone.y);return <button type="button" key={zone.id} data-map-target={zone.id} aria-label={`Open ${zone.name}`} title={zone.name} style={{left:point.x,top:point.y,width:Math.max(44,zone.w*viewport.scale),height:Math.max(44,zone.h*viewport.scale)}} onClick={()=>setSelected(zone)}/>})}</div>
+   <div className="submap-zone-layer">{clickables.map(zone=>{const point=worldToScreen(viewport,zone.x,zone.y),anchor=interactionAnchor(zone,floor.environment);return <button type="button" key={zone.id} data-map-target={zone.id} aria-label={`Open ${zone.name}`} title={zone.name} style={{left:point.x,top:point.y,width:Math.max(44,zone.w*viewport.scale),height:Math.max(44,zone.h*viewport.scale)}} onClick={()=>setSelected(zone)}><span className="submap-lore-mark" style={{left:`calc(50% + ${(anchor[0]-zone.x)*viewport.scale}px)`,top:`calc(50% + ${(anchor[1]-zone.y)*viewport.scale}px)`}}><InteractionIcon kind={interactionKind(zone)}/></span></button>})}</div>
    <div className="map-tools" aria-label="Area map zoom controls"><button type="button" aria-label="Zoom in" onClick={()=>zoom(1.5)}>+</button><button type="button" aria-label="Zoom out" onClick={()=>zoom(1/1.5)}>−</button><button type="button" aria-label="Show whole area" onClick={reset}>⌂</button></div>
   </div>
   {selected&&<LoreDialog title={selected.name} eyebrow={selected.id.startsWith('npc-')?'TRAVELLER SAYS':'MAP LORE'} onClose={()=>setSelected(null)}>
-   <p className="copy">◆ {selected.copy}</p><nav className="lore-links">{(selected.references??(selected.reference?[selected.reference]:[])).map(link=><a key={link.label} href={link.url} target="_blank" rel="noreferrer">{link.label} ↗</a>)}</nav>
+   <p className="copy">◆ {selected.copy}</p><LoreLinks links={selected.references??(selected.reference?[selected.reference]:[])} title={floor.environment==='library'?'CHOOSE A VOLUME':'FIELD NOTES'}/>
   </LoreDialog>}
   <button type="button" className="submap-exit" onClick={onExit}>← MAIN MAP</button>
  </section>;

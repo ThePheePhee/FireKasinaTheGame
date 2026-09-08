@@ -18,6 +18,7 @@ registerHooks({
     }
   },
   load(url, context, nextLoad) {
+    if (url.startsWith('file:') && url.endsWith('.css')) return {format: 'module', shortCircuit: true, source: ''};
     if (url.startsWith('file:') && /\.tsx?$/.test(url)) return {
       format: 'module', shortCircuit: true,
       source: ts.transpileModule(readFileSync(fileURLToPath(url), 'utf8'), {compilerOptions: {target: ts.ScriptTarget.ES2020, module: ts.ModuleKind.ESNext, jsx: ts.JsxEmit.ReactJSX}}).outputText,

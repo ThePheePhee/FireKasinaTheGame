@@ -13,6 +13,7 @@ import MapMode from './components/MapMode';
 import PlayerMode from './components/PlayerMode';
 import GameHud from './components/GameHud';
 import LoreDialog from './components/LoreDialog';
+import LoreLinks from './components/LoreLinks';
 import SceneBoundary from './components/SceneBoundary';
 import './DialogueExtras.css';
 import './application.css';
@@ -40,6 +41,13 @@ const activities: Record<string, {id: Activity; label: string}> = {
 const qaParams = import.meta.env.DEV ? new URLSearchParams(window.location.search) : null;
 const qa = qaParams?.get('qa');
 const qaActivity = Object.values(activities).find(activity => activity.id === qa)?.id;
+const reviewInterior = () => {
+  if (qa !== 'interior') return null;
+  const map = getInteriorMap(qaParams?.get('area') ?? 'tower');
+  if (!map) return null;
+  const zone = map.floors[0].zones.find(item => item.id === qaParams?.get('near'));
+  return zone ? {...map, floors: [{...map.floors[0], spawn: [zone.x, zone.y + zone.h * .55] as [number, number]}, ...map.floors.slice(1)]} : map;
+};
 
 export default function App() {
   const [saved, setSaved] = useState<SavedJourney | null>(() => qa ? null : loadJourney());
@@ -47,7 +55,7 @@ export default function App() {
   const [experience, setExperience] = useState<Experience | null>(qa === 'map' || qa === 'interior' ? 'sandbox' : qa ? 'game' : null);
   const [sandboxView, setSandboxView] = useState<SandboxView>(qa === 'map' ? 'presentation' : 'player');
   const [selection, setSelection] = useState<Selection>(null);
-  const [interior, setInterior] = useState<InteriorMap | null>(() => qa === 'interior' ? getInteriorMap(qaParams?.get('area') ?? 'tower') ?? null : null);
+  const [interior, setInterior] = useState<InteriorMap | null>(reviewInterior);
   const [overview, setOverview] = useState<InteriorMap | null>(null);
   const [activity, setActivity] = useState<Activity | null>(qaActivity ?? null);
   const [gameStats, setGameStats] = useState<GameStats>(() => qaActivity && qaActivity !== 'red-dot' ? {...initial.stats, concentration: 60} : initial.stats);
@@ -175,11 +183,11 @@ export default function App() {
       {activityEntrance && <button className="enter-area" onClick={() => startActivity(activityEntrance.id)}>{activityEntrance.label} →</button>}
       {interiorEntrance && view === 'player' && <button className="enter-area" onClick={() => { setInterior(interiorEntrance); clearSelection(); }}>ENTER THIS AREA →</button>}
       {interiorEntrance && view === 'presentation' && <><button className="enter-area" onClick={() => { setOverview(interiorEntrance); clearSelection(); }}>OPEN AREA MAP →</button><button className="enter-area secondary" onClick={() => { setInterior(interiorEntrance); clearSelection(); }}>WALK THROUGH THIS AREA →</button></>}
-      {presentationReferences[region.id] && <div className="lore-links"><span>FIELD GUIDE</span>{presentationReferences[region.id]!.map(reference => <a key={reference.label} href={reference.url} target="_blank" rel="noreferrer">{reference.label} ↗</a>)}</div>}
+      <LoreLinks links={presentationReferences[region.id]??[]} title="FIELD GUIDE"/>
       <small className="dialogue-hint">ESC · TAP OUTSIDE · × TO CLOSE</small>
     </LoreDialog>}
-    {route && lore && <LoreDialog title={lore.title} eyebrow={`PATH DISCOVERED · ${lore.family.toUpperCase()}`} className={`path-dialogue ${lore.family}`} onClose={clearSelection}><p className="copy"><span className="dialogue-gem">◆</span>{lore.copy}</p>{lore.reference && <div className="lore-links"><span>FIELD GUIDE</span><a href={lore.reference.url} target="_blank" rel="noreferrer">{lore.reference.label} ↗</a></div>}</LoreDialog>}
-    {prop && <LoreDialog title={prop.name} eyebrow="A CURIOUS FIND" className="prop-dialogue" onClose={clearSelection}><p className="copy"><span className="dialogue-gem">◆</span>{prop.copy}</p><div className="lore-links"><span>TRAVELER’S NOTE</span><a href={prop.reference.url} target="_blank" rel="noreferrer">{prop.reference.label} ↗</a></div></LoreDialog>}
+    {route && lore && <LoreDialog title={lore.title} eyebrow={`PATH DISCOVERED · ${lore.family.toUpperCase()}`} className={`path-dialogue ${lore.family}`} onClose={clearSelection}><p className="copy"><span className="dialogue-gem">◆</span>{lore.copy}</p><LoreLinks links={lore.reference?[lore.reference]:[]} title="FIELD GUIDE"/></LoreDialog>}
+    {prop && <LoreDialog title={prop.name} eyebrow="A CURIOUS FIND" className="prop-dialogue" onClose={clearSelection}><p className="copy"><span className="dialogue-gem">◆</span>{prop.copy}</p><LoreLinks links={[prop.reference]} title="TRAVELLER’S NOTE"/></LoreDialog>}
     {menu && <LoreDialog title="REST A MOMENT" eyebrow={isGame ? 'YOUR JOURNEY IS PAUSED' : 'SANDBOX'} className="journey-menu" onClose={() => setMenu(false)}>
       <p className="copy">{isGame ? `A steady flame opens the Mists at ${MIST_ENTRY_CONCENTRATION} concentration. The Fairy Playground calls for both ${FAIRY_ENTRY_CONCENTRATION} concentration and ${FAIRY_ENTRY_CLARITY} clarity. Return to the Red Dot Range when your strength runs low.` : 'The whole landscape is open. Use Map to browse regions and paths, or Player to wander, meet travelers, and enter the places you find.'}</p>
       <p className="menu-controls">WASD / ARROWS · MOVE<br/>TAP AN AREA NOTICE · READ ITS LORE<br/>ESC · CLOSE LORE / OPEN THIS MENU</p>
