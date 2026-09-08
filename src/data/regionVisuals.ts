@@ -33,7 +33,7 @@ const baseMistWisps:[number,number,number][]=[
 export const mistWisps:[number,number,number][]=baseMistWisps.map(([x,y,size])=>{const [nextX,nextY]=expandPoint([x,y]);return[nextX,nextY,size]});
 
 export const fairyDecorations=([
- [0,0,75,315,76],[1,0,390,45,68],[2,0,850,42,64],[3,0,1535,405,70],
- [0,1,65,900,74],[1,1,760,1045,74],[2,1,1190,1045,70],[3,1,1530,690,74],
+ [0,0,75,315,76],[1,0,355,90,68],[2,0,850,42,64],[3,0,1555,405,70],
+ [0,1,65,900,74],[1,1,760,1055,74],[2,1,1190,1055,70],[3,1,1555,690,74],
 ] as [number,number,number,number,number][]).map(([column,row,baseX,baseY,size])=>{const [x,y]=expandPoint([baseX,baseY]);return{art:[column,row] as [number,number],x,y,size}});
 import {expandPoint} from './mapScale';

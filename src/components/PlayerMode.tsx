@@ -103,7 +103,7 @@ export default function PlayerMode({player,dialogue,discoveredRegions,onDiscover
    const nearby=mapRegions.some(region=>region.id!=='fairy-playground'&&Math.hypot(player.current.x-region.x,player.current.y-region.y)<regionExtent(region)+100);
    drawMap(ctx,nearby);drawPlayer(ctx,player.current);ctx.restore();
    if(rules)drawFogOfWar(ctx,width,height,camera.x,camera.y,rules.discovery.current,player.current.x,player.current.y,inMist,now);
-   if(rules&&inMist)drawMistVeil(ctx,width,height,now,statsRef.current?.confusion??0);drawVignette(ctx,width,height);frame=requestAnimationFrame(tick);
+   if(rules&&inMist)drawMistVeil(ctx,width,height,now,statsRef.current?.confusion??0);drawVignette(ctx,width,height,.24);frame=requestAnimationFrame(tick);
   };
   frame=requestAnimationFrame(tick);return()=>cancelAnimationFrame(frame);
  },[dialogue,discoveredRegions,onDiscover,onDiscoverProp,player]);

@@ -169,7 +169,7 @@ export default function App() {
   return <main className={`game experience-${experience}`}>
     {!sceneOpen && <div className={`world-surface ${view === 'presentation' ? 'atlas-surface' : ''}`} inert={blocked}>
       <SceneBoundary onRecover={returnToTitle}>
-        {view === 'player' ? <PlayerMode player={isGame ? gamePlayer : sandboxPlayer} dialogue={blocked} discoveredRegions={isGame ? gameDiscovered : sandboxDiscovered} onDiscover={selectRegion} onDiscoverProp={selectProp} game={isGame ? {stats: gameStats, discovery: gameDiscovery, onStatsChange: onGameStatsChange, onPractice: openPractice, explorationAssists: assists} : undefined}/> : <MapMode onSelectRegion={selectRegion} onSelectRoute={selectRoute} onSelectProp={selectProp} onClear={clearSelection}/>}
+        {view === 'player' ? <PlayerMode player={isGame ? gamePlayer : sandboxPlayer} dialogue={blocked} discoveredRegions={isGame ? gameDiscovered : sandboxDiscovered} onDiscover={selectRegion} onDiscoverProp={selectProp} game={isGame ? {stats: gameStats, discovery: gameDiscovery, onStatsChange: onGameStatsChange, onPractice: openPractice, explorationAssists: assists} : undefined}/> : <MapMode onSelectRegion={selectRegion} onSelectRoute={selectRoute} onSelectProp={selectProp} onClear={clearSelection} selectedRouteId={route?.id??null}/>}
       </SceneBoundary>
     </div>}
     {!sceneOpen && <>

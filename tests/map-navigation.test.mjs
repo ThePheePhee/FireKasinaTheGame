@@ -129,7 +129,7 @@ test('each route marker sits on its actual road and remains clear of map artwork
 });
 
 test('presentation changes preserve the requested destination and homestead connections',()=>{
- const connections={artificer:['fireworks','magical'],ascent:['magical','healing','celestial'],mending:['trauma','life-recall','healing'],vanishing:['jhana','formless'],siddhi:['jhana','tower','magical'],reappearance:['formless','celestial'],middle:['tower','garden'],'library-lane':['house','library'],'fortification-road':['red-dot','fortification-tavern']};
+ const connections={artificer:['fireworks','magical'],ascent:['magical','healing','celestial'],mending:['trauma','life-recall','healing'],vanishing:['jhana','formless'],siddhi:['jhana','tower','magical'],reappearance:['formless','celestial'],middle:['tower','house'],'library-lane':['house','library'],'fortification-road':['red-dot','fortification-tavern']};
  for(const [id,regions] of Object.entries(connections)){
   const route=routes.find(item=>item.id===id);assert(route,`missing ${id}`);
   for(const id of regions){const region=mapRegions.find(item=>item.id===id);assert(route.points.some(([x,y])=>Math.hypot(x-region.x,y-region.y)<.01),`${route.name} no longer reaches ${region.name}`)}
