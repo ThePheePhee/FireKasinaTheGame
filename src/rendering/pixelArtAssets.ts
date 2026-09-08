@@ -1,5 +1,7 @@
+import {atlasFrame} from './atlasFrames';
 type AtlasName='player'|'landmarks'|'terrain'|'expansion'|'special'|'story'|'states'|'recall'|'rupa'|'clarity'|'fairy'|'luminous'|'divine'|'settlements'|'tavern-interior'|'library-interior';
 const atlases:Partial<Record<AtlasName,HTMLImageElement>>={};
+const atlasNames=new WeakMap<HTMLImageElement,AtlasName>();
 const ready=new Set<AtlasName>(),listeners=new Set<()=>void>();
 let revision=0;
 
@@ -14,7 +16,7 @@ const sources:Record<AtlasName,string>={
 
 export function getAtlas(name:AtlasName){
  if(!atlases[name]){
-  const image=new Image();atlases[name]=image;
+  const image=new Image();atlases[name]=image;atlasNames.set(image,name);
   image.onload=()=>{ready.add(name);revision++;for(const listener of listeners)listener()};
   image.src=`${import.meta.env.BASE_URL}assets/${sources[name]}`;
  }
@@ -24,8 +26,10 @@ export function pixelArtRevision(){return revision}
 export function onPixelArtReady(listener:()=>void){listeners.add(listener);if(ready.size)queueMicrotask(()=>{if(listeners.has(listener))listener()});return()=>{listeners.delete(listener)}}
 
 export function drawAtlasCell(ctx:CanvasRenderingContext2D,image:HTMLImageElement,column:number,row:number,x:number,y:number,width:number,height=width){
- const cellWidth=image.naturalWidth/4,cellHeight=image.naturalHeight/4;
- ctx.drawImage(image,column*cellWidth,row*cellHeight,cellWidth,cellHeight,Math.round(x-width/2),Math.round(y-height/2),Math.round(width),Math.round(height));
+ const frame=atlasFrame(atlasNames.get(image)??'',column,row,image.naturalWidth,image.naturalHeight);
+ const left=Math.round(x-width/2),top=Math.round(y-height/2),w=Math.round(width),h=Math.round(height);
+ // Preserve the original cell anchor: cropping must never enlarge or recenter art.
+ ctx.drawImage(image,frame.sx,frame.sy,frame.sw,frame.sh,left+w*frame.offsetX,top+h*frame.offsetY,w*frame.scaleX,h*frame.scaleY);
 }
 
 export function drawStoryCell(ctx:CanvasRenderingContext2D,image:HTMLImageElement,column:number,row:number,x:number,y:number,size:number){

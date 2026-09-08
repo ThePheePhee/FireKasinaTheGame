@@ -78,7 +78,7 @@ function drawLibraryShelfSigns(ctx:CanvasRenderingContext2D,floor:InteriorFloor)
   ctx.fillStyle='#d2af73';ctx.fillRect(x-w/2+2,y-h/2+2,w-4,2);ctx.fillRect(x-w/2+2,y+h/2-4,w-4,2);
   ctx.fillStyle='#2b241f';ctx.fillRect(x-w/2+6,y-h/2+6,w-12,h-12);
   ctx.fillStyle=theme.thread;ctx.fillRect(x-w/2+16,y-9,11,18);ctx.fillRect(x-w/2+29,y-9,11,18);ctx.fillRect(x-w/2+21,y+9,14,2);
-  ctx.fillStyle='#f3e2ad';ctx.fillText(theme.label,x+17,y+1);
+  // The shelf name is drawn at screen resolution with the other interior captions.
   ctx.fillStyle='#b7925c';for(const side of [-1,1])ctx.fillRect(x+side*(w/2-5)-1,y-1,2,2);
  }
  ctx.restore();
@@ -107,7 +107,7 @@ export function drawSocialInterior(ctx:CanvasRenderingContext2D,map:InteriorMap,
  if(library)drawLibraryShelfSigns(ctx,floor);
  else{const glow=ctx.createRadialGradient(825,175,10,825,175,330);glow.addColorStop(0,`rgba(255,202,104,${.14+Math.sin(time/260)*.02})`);glow.addColorStop(1,'transparent');ctx.fillStyle=glow;ctx.fillRect(450,0,750,700)}
  ctx.strokeStyle=library?'#a47b48':'#9b6738';ctx.lineWidth=8;ctx.strokeRect(55,55,floor.width-110,floor.height-110);
- ctx.fillStyle='#121017dd';ctx.fillRect(floor.spawn[0]-72,floor.height-65,144,65);ctx.fillStyle='#ffe0a0';ctx.font='bold 12px monospace';ctx.textAlign='center';ctx.fillText('MAIN MAP',floor.spawn[0],floor.height-27);
+ ctx.fillStyle='#121017dd';ctx.fillRect(floor.spawn[0]-72,floor.height-65,144,65);
 }
 
 export function drawSocialForeground(ctx:CanvasRenderingContext2D,floor:InteriorFloor,playerY=Infinity,layer:'all'|'behind'|'ahead'='all'){
@@ -125,5 +125,5 @@ export function drawInteriorNpc(ctx:CanvasRenderingContext2D,npc:InteriorNpc,x:n
 }
 
 export function drawInteriorNpcLabel(ctx:CanvasRenderingContext2D,npc:InteriorNpc,x:number,y:number){
- ctx.fillStyle='#151019d9';ctx.font='bold 11px monospace';ctx.textAlign='center';const width=Math.min(210,ctx.measureText(npc.name).width+16);ctx.fillRect(x-width/2,y+33,width,22);ctx.fillStyle='#fff0bd';ctx.fillText(npc.name,x,y+48);
+ ctx.save();ctx.fillStyle='#151019d9';ctx.font='bold 13px monospace';ctx.textAlign='center';ctx.textBaseline='middle';const width=ctx.measureText(npc.name).width+16;ctx.fillRect(x-width/2,y+33,width,26);ctx.fillStyle='#fff0bd';ctx.fillText(npc.name,x,y+46);ctx.restore();
 }

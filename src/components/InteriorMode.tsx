@@ -14,7 +14,8 @@ import './InteriorMode.css';
 import './InteriorHeaderFix.css';
 import './SocialInteriors.css';
 import {getAtlas,onPixelArtReady} from '../rendering/pixelArtAssets';
-import {drawInteriorNpc,drawInteriorNpcLabel,drawSocialForeground,drawSocialInterior} from '../rendering/drawSocialInterior';
+import {drawInteriorNpc,drawSocialForeground,drawSocialInterior} from '../rendering/drawSocialInterior';
+import {drawInteriorCaptions,interiorCaptions,layoutInteriorCaptions} from '../rendering/drawInteriorCaptions';
 
 const palette={tower:['#111827','#28364b','#63718a','#d7c281'],fireworks:['#170d18','#481724','#96352e','#ffae38'],magick:['#11142b','#282954','#665b91','#c990df'],jhana:['#102126','#24464a','#64826d','#d2c981'],divine:['#252d49','#655b85','#a783a7','#f3db9a'],formless:['#03050d','#0d1228','#282a54','#8189c8'],healing:['#183229','#315c43','#70a66b','#d7d68e'],recall:['#21182a','#4b3b56','#86738e','#e2c589'],tavern:['#201710','#493322','#8a5a31','#efbd68'],library:['#171411','#3b2c22','#8b693f','#efce82']} as const;
 const themeColumn={tower:0,fireworks:3,magick:2,jhana:4,divine:5,formless:5,healing:4,recall:0,tavern:3,library:0};
@@ -41,13 +42,13 @@ export function drawIntegratedFloor(ctx:CanvasRenderingContext2D,map:InteriorMap
  const colors=palette[map.theme],column=themeColumn[map.theme],recallTiles=map.theme==='recall'?getAtlas('recall'):null,up=upPoint(floor),down=downPoint(floor),pathStart=floorIndex?down:floor.spawn,path=[pathStart,...floor.zones.map(z=>[z.x,z.y] as [number,number])];if(floorIndex<map.floors.length-1)path.push(up);
  drawFloorGround(ctx,map.theme,floor.width,floor.height);if(animate)drawAtmosphere(ctx,map.theme,floor.width,floor.height,time);
  const gardenPath=['jhana','healing','recall'].includes(map.theme);ctx.strokeStyle=gardenPath?'#c7b08028':`${colors[3]}14`;ctx.lineWidth=gardenPath?136:148;ctx.lineJoin='bevel';ctx.lineCap='square';ctx.beginPath();path.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));ctx.stroke();
- floor.zones.forEach(z=>{const image=z.artAtlas==='special'?special:z.artAtlas==='legacy'?legacy:z.artAtlas==='states'?(states??getAtlas('states')):z.artAtlas==='rupa'?(rupa??getAtlas('rupa')):z.artAtlas==='luminous'?getAtlas('luminous'):z.artAtlas==='divine'?getAtlas('divine'):landmarks;if(image){const columns=z.artAtlas==='luminous'||z.artAtlas==='divine'?3:z.artAtlas==='states'||z.artAtlas==='special'||z.artAtlas==='rupa'?4:5,rows=z.artAtlas==='luminous'||z.artAtlas==='divine'||z.artAtlas==='special'?2:z.artAtlas==='states'?3:z.artAtlas==='rupa'?1:z.artAtlas==='legacy'?5:4,size=Math.min(z.w,z.h)*.78,cellW=image.naturalWidth/columns,cellH=image.naturalHeight/rows;ctx.drawImage(image,z.art[0]*cellW,z.art[1]*cellH,cellW,cellH,z.x-size/2,z.y-size/2-10,size,size)}ctx.font='bold 13px monospace';ctx.textAlign='center';const label=ctx.measureText(z.name).width+18;ctx.fillStyle='#11111abb';ctx.fillRect(z.x-label/2,z.y+z.h*.42-12,label,24);ctx.fillStyle='#fff0bd';ctx.fillText(z.name,z.x,z.y+z.h*.42+5)});
+ floor.zones.forEach(z=>{const image=z.artAtlas==='special'?special:z.artAtlas==='legacy'?legacy:z.artAtlas==='states'?(states??getAtlas('states')):z.artAtlas==='rupa'?(rupa??getAtlas('rupa')):z.artAtlas==='luminous'?getAtlas('luminous'):z.artAtlas==='divine'?getAtlas('divine'):landmarks;if(image){const columns=z.artAtlas==='luminous'||z.artAtlas==='divine'?3:z.artAtlas==='states'||z.artAtlas==='special'||z.artAtlas==='rupa'?4:5,rows=z.artAtlas==='luminous'||z.artAtlas==='divine'||z.artAtlas==='special'?2:z.artAtlas==='states'?3:z.artAtlas==='rupa'?1:z.artAtlas==='legacy'?5:4,size=Math.min(z.w,z.h)*.78,cellW=image.naturalWidth/columns,cellH=image.naturalHeight/rows;ctx.drawImage(image,z.art[0]*cellW,z.art[1]*cellH,cellW,cellH,z.x-size/2,z.y-size/2-10,size,size)}});
  floor.obstacles.forEach(o=>{if(recallTiles)recallCell(ctx,recallTiles,2,o.x+o.w/2,o.y+o.h/2,Math.max(o.w,o.h)*1.35);else if(tiles)atlasCell(ctx,tiles,column,2,o.x+o.w/2,o.y+o.h/2,Math.max(o.w,o.h)*1.35);else{ctx.fillStyle=colors[2];ctx.fillRect(o.x,o.y,o.w,o.h)}});
  if(floorIndex===0){if(recallTiles)recallCell(ctx,recallTiles,3,floor.spawn[0],floor.height-70,145);drawExit(ctx,floor.spawn[0],floor.height-35,colors[3])}else drawStairs(ctx,tiles,down[0],down[1],false,colors[3],map.theme);if(floorIndex<map.floors.length-1)drawStairs(ctx,tiles,up[0],up[1],true,colors[3],map.theme);
  ctx.strokeStyle=`${colors[2]}88`;ctx.lineWidth=6;ctx.strokeRect(22,22,floor.width-44,floor.height-44);ctx.strokeStyle=`${colors[3]}66`;ctx.lineWidth=2;ctx.strokeRect(31,31,floor.width-62,floor.height-62);
 }
-function drawStairs(ctx:CanvasRenderingContext2D,tiles:HTMLImageElement|null,x:number,y:number,up:boolean,color:string,theme:InteriorMap['theme']){if(tiles){const column=theme==='divine'?4:theme==='formless'?5:up?0:1;atlasCell(ctx,tiles,column,3,x,y,126)}else{ctx.fillStyle='#17141d';ctx.fillRect(x-48,y-48,96,96);for(let i=0;i<6;i++){ctx.fillStyle=i%2?color:'#625b62';ctx.fillRect(x-34+i*5,y-31+i*10,68-i*10,7)}}ctx.font='bold 11px monospace';ctx.textAlign='center';ctx.fillStyle='#11111add';ctx.fillRect(x-61,y+49,122,20);ctx.fillStyle=color;ctx.fillText(up?'▲ NEXT FLOOR':'▼ PREVIOUS FLOOR',x,y+63)}
-function drawExit(ctx:CanvasRenderingContext2D,x:number,y:number,color:string){ctx.fillStyle='#121019';ctx.fillRect(x-74,y-36,148,72);ctx.strokeStyle=color;ctx.lineWidth=5;ctx.strokeRect(x-74,y-36,148,72);ctx.fillStyle='#fff0bd';ctx.font='bold 12px monospace';ctx.textAlign='center';ctx.fillText('MAIN MAP',x,y+5)}
+function drawStairs(ctx:CanvasRenderingContext2D,tiles:HTMLImageElement|null,x:number,y:number,up:boolean,color:string,theme:InteriorMap['theme']){if(tiles){const column=theme==='divine'?4:theme==='formless'?5:up?0:1;atlasCell(ctx,tiles,column,3,x,y,126)}else{ctx.fillStyle='#17141d';ctx.fillRect(x-48,y-48,96,96);for(let i=0;i<6;i++){ctx.fillStyle=i%2?color:'#625b62';ctx.fillRect(x-34+i*5,y-31+i*10,68-i*10,7)}}}
+function drawExit(ctx:CanvasRenderingContext2D,x:number,y:number,color:string){ctx.fillStyle='#121019';ctx.fillRect(x-74,y-36,148,72);ctx.strokeStyle=color;ctx.lineWidth=5;ctx.strokeRect(x-74,y-36,148,72);}
 
 interface RuntimeNpc {data:InteriorNpc;x:number;y:number;angle:number;changeAt:number}
 const npcZone=(runtime:RuntimeNpc):InteriorZone=>({id:`npc-${runtime.data.id}`,name:runtime.data.name,copy:runtime.data.copy,x:runtime.x,y:runtime.y,w:90,h:90,shape:'circle',art:[0,0],references:runtime.data.references});
@@ -97,7 +98,9 @@ export default function InteriorMode({map,onExit}:{map:InteriorMap;onExit:()=>vo
   return()=>{if(scene.current===surface)scene.current=null};
  },[artRevision,floor,floorIndex,landmarks,legacy,map,special,tiles]);
  useEffect(()=>{
-  let frame=0,last=performance.now();
+  let frame=0,last=performance.now(),captionKey='';
+  let captions:ReturnType<typeof layoutInteriorCaptions>=[];
+  const staticCaptions=interiorCaptions(map,floor,floorIndex,[]);
   const tick=(now:number)=>{
    const c=canvasRef.current;if(!c)return;
    const dt=Math.min((now-last)/1000,.04);last=now;
@@ -118,16 +121,26 @@ export default function InteriorMode({map,onExit}:{map:InteriorMap;onExit:()=>vo
     else if(floorIndex===0&&p.y>floor.height-55&&Math.abs(p.x-floor.spawn[0])<78){transitionLock.current=now+1000;onExit()}
    }
    const d=Math.min(devicePixelRatio||1,2),w=c.width/d,h=c.height/d,camera=playerCamera(p.x,p.y,w,h,floor.width,floor.height),ctx=c.getContext('2d')!;
+   const captionView={x:Math.round(camera.x),y:Math.round(camera.y),scale:1};
+   const nextCaptionKey=[captionView.x,captionView.y,w,h,entered?.id??'',...npcs.current.flatMap(npc=>[Math.round(npc.x),Math.round(npc.y)])].join('/');
+   if(nextCaptionKey!==captionKey){
+    captionKey=nextCaptionKey;
+    const captionExclusions=[{x:0,y:h-170,width:176,height:170}];
+    if(!dialogue){const promptWidth=w<700?Math.max(0,w-166):Math.min(370,w-190);captionExclusions.push({x:w-promptWidth-32,y:h-220,width:promptWidth+32,height:220})}
+    if(entered&&!dialogue){const [x,y]=interactionAnchor(entered,floor.environment);captionExclusions.push({x:x-captionView.x-75,y:y-captionView.y-30,width:150,height:66})}
+    captions=layoutInteriorCaptions(npcs.current.length?interiorCaptions(map,floor,floorIndex,npcs.current):staticCaptions,captionView,{width:w,height:h},captionExclusions,floor);
+   }
    ctx.setTransform(d,0,0,d,0,0);ctx.imageSmoothingEnabled=false;ctx.clearRect(0,0,w,h);ctx.save();ctx.translate(-camera.x,-camera.y);
    if(scene.current)ctx.drawImage(scene.current,0,0);
    if(!floor.environment)drawAtmosphere(ctx,map.theme,floor.width,floor.height,now);
    for(const npc of npcs.current)drawInteriorNpc(ctx,npc.data,npc.x,npc.y,now,false);
    drawSocialForeground(ctx,floor,p.y,'behind');drawPlayer(ctx,p);drawSocialForeground(ctx,floor,p.y,'ahead');
-   for(const npc of npcs.current)drawInteriorNpcLabel(ctx,npc.data,npc.x,npc.y);
-   if(!dialogue){for(const zone of floor.zones)if(zone.id!==entered?.id)drawInteractionMarker(ctx,zone,floor.environment);for(const npc of npcs.current){const zone=npcZone(npc);if(zone.id!==entered?.id)drawInteractionMarker(ctx,zone,floor.environment)}}
+   if(!dialogue){for(const zone of floor.zones)if(zone.id!==entered?.id&&!captions.some(label=>label.caption.id===zone.id))drawInteractionMarker(ctx,zone,floor.environment);for(const npc of npcs.current){const zone=npcZone(npc);if(zone.id!==entered?.id&&!captions.some(label=>label.caption.id===zone.id))drawInteractionMarker(ctx,zone,floor.environment)}}
    if(markerSpace.current)markerSpace.current.style.transform=`translate(${-camera.x}px,${-camera.y}px)`;
    if(markerButton.current&&entered){const [x,y]=interactionAnchor(entered,floor.environment);markerButton.current.style.left=`${x}px`;markerButton.current.style.top=`${y}px`}
-   ctx.restore();drawVignette(ctx,w,h);frame=requestAnimationFrame(tick);
+   ctx.restore();drawVignette(ctx,w,h);
+   drawInteriorCaptions(ctx,captions);
+   frame=requestAnimationFrame(tick);
   };
   frame=requestAnimationFrame(tick);return()=>cancelAnimationFrame(frame);
  },[dialogue,floor,floorIndex,map,onExit]);
