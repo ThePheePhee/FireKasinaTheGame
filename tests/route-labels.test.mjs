@@ -1,11 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {createElement} from 'react';
+import {renderToStaticMarkup} from 'react-dom/server';
+import MapMode from '../src/components/MapMode.tsx';
 import {routes} from '../src/data/routes.ts';
 import {mapRegions,WORLD} from '../src/data/mapRegions.ts';
 import {regionVisuals} from '../src/data/regionVisuals.ts';
 import {mapProps} from '../src/data/mapProps.ts';
-import {fitMap,worldToScreen} from '../src/engine/mapViewport.ts';
-import {boxesOverlap,layoutLocationLabels,layoutRouteLabels,PRIMARY_ROUTE_IDS,splitRouteName} from '../src/engine/routeLabels.ts';
+import {constrainMap,fitMap,worldToScreen} from '../src/engine/mapViewport.ts';
+import {boxesOverlap,isCompactRouteOverview,layoutLocationLabels,layoutRouteLabels,PRIMARY_ROUTE_IDS,splitRouteName} from '../src/engine/routeLabels.ts';
 
 const distanceToRoad=(point,route)=>Math.min(...route.points.slice(1).map((b,index)=>{
  const a=route.points[index],dx=b[0]-a[0],dy=b[1]-a[1],t=Math.max(0,Math.min(1,((point.x-a[0])*dx+(point.y-a[1])*dy)/(dx*dx+dy*dy||1)));
@@ -29,6 +32,14 @@ test('signs keep complete names and split only between words',()=>{
  for(const route of routes){const lines=splitRouteName(route.name);assert.ok(lines.length<=2);assert.equal(lines.join(' '),route.name);assert.ok(lines.every(line=>line.trim()===line&&line.length>0))}
  assert.deepEqual(splitRouteName('Clarity Ridge'),['Clarity Ridge']);
  assert.equal(splitRouteName('The Road of Splendid Reappearance').length,2);
+});
+
+test('the route guide visibly names its purpose and starts with map labels enabled',()=>{
+ const html=renderToStaticMarkup(createElement(MapMode,{onSelectRegion(){},onSelectRoute(){},onSelectProp(){},onClear(){}}));
+ assert.match(html,new RegExp(`aria-label="Named paths: browse all ${routes.length} roads"`));
+ assert.match(html,/NAMED PATHS/);
+ assert.match(html,/aria-controls="map-route-index"/);
+ assert.match(html,/aria-label="Show path names on the map" aria-pressed="true"/);
 });
 
 test('desktop overview lays out readable road names without covering landmark art or one another',()=>{
@@ -65,6 +76,29 @@ test('road labels remain readable when zooming and omit impossible placements ra
  const zoomed=layoutRouteLabels([route],{x:200,y:100,scale:1.5},size,[])[0];
  assert.equal(wide.width,zoomed.width);assert.equal(wide.height,zoomed.height);
  assert.deepEqual(layoutRouteLabels([route],{x:0,y:0,scale:1},size,[{x:0,y:0,width:1000,height:700}]),[]);
+});
+
+test('mobile decluttering ends after the first zoom step, not only after the browser grows wider',()=>{
+ for(const size of [{width:390,height:768},{width:600,height:800},{width:720,height:420}]){
+  const fit=fitMap(size,WORLD);
+  assert.equal(isCompactRouteOverview(fit,size,true,WORLD),true);
+  assert.equal(isCompactRouteOverview({...fit,scale:fit.scale*1.5},size,true,WORLD),false);
+  assert.equal(isCompactRouteOverview(fit,size,false,WORLD),false);
+ }
+});
+
+test('phone explorers can see secondary named roads after zooming without selecting them first',()=>{
+ const size={width:390,height:768},scale=fitMap(size,WORLD).scale*1.5;
+ for(const id of ['artificer','ascent','reappearance']){
+  const route=routes.find(route=>route.id===id);
+  const view=constrainMap({x:route.labelAt[0]-size.width/scale/2,y:route.labelAt[1]-size.height/scale/2,scale},size,WORLD);
+  const props=mapProps.map(prop=>{const p=worldToScreen(view,prop.x,prop.y),w=prop.size*scale;return{x:p.x-w/2,y:p.y-w/2,width:w,height:w}});
+  const art=mapRegions.flatMap(region=>{const visual=regionVisuals[region.id],w=(visual?.artSize??0)*scale;if(!w)return[];const [dx,dy]=visual.artOffset??[0,0],p=worldToScreen(view,region.x+dx,region.y+dy);return[{x:p.x-w/2,y:p.y-w/2,width:w,height:w}]});
+  const obstacles=[...art,...props,...layoutLocationLabels(mapRegions,regionVisuals,view,props,size),{x:0,y:size.height-100,width:240,height:100},{x:size.width-76,y:size.height-194,width:76,height:194}];
+  const labels=layoutRouteLabels(routes,view,size,obstacles,true,null,WORLD);
+  assert.ok(labels.some(label=>label.route.id===id),`${route.name} is still hidden from phone explorers`);
+  checkPlacement(labels,view,size,obstacles);
+ }
 });
 
 test('road signs stay inside the rendered world, not in the surrounding letterbox',()=>{

@@ -1,8 +1,8 @@
 import type {Route} from '../data/routes';
-import type {Region} from '../data/mapRegions';
+import {WORLD,type Region} from '../data/mapRegions';
 import type {RegionVisual} from '../data/regionVisuals';
 import type {View} from './camera';
-import {worldToScreen, type MapBounds, type ScreenSize} from './mapViewport';
+import {fitMap,worldToScreen, type MapBounds, type ScreenSize} from './mapViewport';
 
 export interface LabelBox {x:number;y:number;width:number;height:number}
 export interface RouteLabel extends LabelBox {route:Route;lines:string[];anchor:{x:number;y:number};stem:{x:number;y:number}}
@@ -31,6 +31,11 @@ function splitMapName(name:string,limit:number):string[]{
 }
 
 export function splitRouteName(name:string):string[]{return splitMapName(name,18)}
+
+/** A small whole-map view needs fewer signs; phone width must not hide roads after zooming. */
+export function isCompactRouteOverview(view:View,size:ScreenSize,compact:boolean,bounds:MapBounds=WORLD):boolean{
+  return compact&&view.scale<fitMap(size,bounds).scale*1.45;
+}
 
 /** Locations are the primary captions; they stay readable as the terrain zooms out. */
 export function layoutLocationLabels(regions:Region[],visuals:Record<string,RegionVisual>,view:View,reserved:LabelBox[]=[],screen?:ScreenSize):LocationLabel[]{
@@ -91,7 +96,8 @@ export function layoutRouteLabels(routes:Route[],view:View,size:ScreenSize,obsta
   const margin=compact?-40:4;
   const limits={left:Math.max(10,worldStart.x+margin),top:Math.max(10,worldStart.y+margin),right:Math.min(size.width-10,worldEnd.x-margin),bottom:Math.min(size.height-10,worldEnd.y-margin)};
   const rank=(route:Route)=>route.id===selectedId?-3:PRIMARY_ROUTE_IDS.includes(route.id)?-2:northernRoads.has(route.id)?-1:route.family==='connection'?1:0;
-  const ordered=routes.filter(route=>!compact||PRIMARY_ROUTE_IDS.includes(route.id)||route.id===selectedId).map((route,index)=>({route,index})).sort((a,b)=>rank(a.route)-rank(b.route)||a.index-b.index);
+  const overview=isCompactRouteOverview(view,size,compact,bounds);
+  const ordered=routes.filter(route=>!overview||PRIMARY_ROUTE_IDS.includes(route.id)||route.id===selectedId).map((route,index)=>({route,index})).sort((a,b)=>rank(a.route)-rank(b.route)||a.index-b.index);
   const placed:RouteLabel[]=[];
   for(const {route} of ordered){
     const lines=splitRouteName(route.name),width=Math.max(...lines.map(line=>line.length))*6.5+10,height=lines.length*13+6;

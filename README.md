@@ -8,7 +8,7 @@ An 8-bit browser adventure through the imaginative landscape of fire kasina prac
 
 - **Game:** begin at Your House, explore the familiar homestead, and practise in the Red Dot Range. Enter the Mists with at least 35 concentration; the Fairy Playground requires both 35 concentration and 80 clarity. Concentration drains in the Mists, and a weakening lantern draws you home.
 - **Sandbox:** freely walk or browse the complete map, enter its interiors, read field notes, and try minigames. Sandbox practice does not alter your saved game.
-- **Controls:** WASD or arrow keys to walk; touch controls appear on phones. In Map view, tap a region or named road sign, drag to pan, or pinch to zoom. The Routes guide lists every path and its lore; path names can be toggled without hiding the roads. Interiors use actual staircases. Book and speech signs mark interactions: approach and tap the sign or persistent nearby-action card, or press E. Library links appear as selectable volumes. Inn replies also accept number keys.
+- **Controls:** WASD or arrow keys to walk; touch controls appear on phones. While walking, nearby roads display their names: tap the wooden path sign or press R for lore. Shared corridors offer all their named paths. In Map view, tap a region or named road sign, drag to pan, or pinch to zoom. The Named Paths guide lists every full name, itinerary, and teaching; zooming in reveals more road signs on phones. Interiors use actual staircases. Book and speech signs mark interactions: approach and tap the sign or persistent nearby-action card, or press E. Library links appear as selectable volumes. Inn replies also accept number keys.
 - **Pause and save:** use Menu or Escape from the main map. Your game position, meters, discoveries, and exploration assists save automatically in this browser. Continue from the title screen. Starting a new journey explicitly replaces that browser's save. Saves do not sync between devices; an unfinished minigame resumes at its map entrance, with the latest saved meters.
 - **Exploration assists:** expand the panel beneath the meters. Checked assists maintain the required real meter values, making exploration possible without repeated returns to practice.
 
@@ -31,7 +31,7 @@ npm run preview
 
 Tests run against the actual TypeScript source with Node's test runner. They cover progression, calibrated practice mechanics, maze reachability/hazards, conversational routes and consequences, map gestures, stairs/collision, and defensive save restoration. GitHub Pages runs these checks before publishing changes to `main`.
 
-Local-only review entrances include `?qa=map`, `?qa=interior&area=tower`, and `?qa=red-dot`, `trauma`, `inn`, `lagoon`, or `chasm`. Add `&near=meditation-shelves` to the library interior review to inspect a nearby interaction. These routes are excluded from production and do not write saved journeys.
+Local-only review entrances include `?qa=map`, `?qa=interior&area=tower`, and `?qa=red-dot`, `trauma`, `inn`, `lagoon`, or `chasm`. Add `&near=meditation-shelves` to the library interior review to inspect a nearby interaction. Use `?qa=road&path=artificer` or `path=ascent` to review walking-mode path names. These routes are excluded from production and do not write saved journeys.
 
 ## Editing the landscape
 
@@ -54,3 +54,4 @@ Keep geometry in the shared world data so sandbox and game stay aligned. Artwork
 
 See [the Inn review](docs/inn-review.md) for route coverage and conversation design rules.
 See [map art direction](docs/map-art-direction.md) for the landscape composition, road hierarchy, and shared-world safeguards.
+See [the path-name review](docs/path-names.md) for recovered names, the two naming corrections, and their teaching roles.

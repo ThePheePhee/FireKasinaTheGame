@@ -1,6 +1,8 @@
 import {useCallback,useEffect,useRef,useState,type MutableRefObject} from 'react';
 import {mapRegions,WORLD,type Region} from '../data/mapRegions';
 import {mapProps,type MapProp} from '../data/mapProps';
+import type {Route} from '../data/routes';
+import {nearbyRoutes} from '../engine/nearbyRoutes';
 import {playerCamera} from '../engine/camera';
 import {movePlayer,type Player} from '../engine/movement';
 import {regionExtent} from '../engine/regionGeometry';
@@ -12,6 +14,7 @@ import {drawPlayer} from '../rendering/drawPlayer';
 import {drawVignette} from '../rendering/drawUI';
 import './PlayerMode.css';
 import InteractionPrompt from './InteractionPrompt';
+import RoadsideSign from './RoadsideSign';
 
 export interface GameRules {
  stats:GameStats;discovery:MutableRefObject<DiscoveryPoint[]>;
@@ -20,17 +23,18 @@ export interface GameRules {
 }
 interface PlayerModeProps {
  player:MutableRefObject<Player>;dialogue:boolean;discoveredRegions:MutableRefObject<Set<string>>;
- onDiscover:(region:Region)=>void;onDiscoverProp:(prop:MapProp)=>void;game?:GameRules;
+ onDiscover:(region:Region)=>void;onDiscoverProp:(prop:MapProp)=>void;onReadRoute:(route:Route)=>void;game?:GameRules;
 }
 
 const range=mapRegions.find(region=>region.id==='red-dot')!;
 const confusionRates:Record<string,number>={booboo:2.8,trauma:2.2,chasm:3.2,'counterfeit-crags':1.7,'credulous-circuit':2.1,inn:.9,mist:.7};
 const noAssists:ExplorationAssists={mist:false,fairy:false};
 
-export default function PlayerMode({player,dialogue,discoveredRegions,onDiscover,onDiscoverProp,game}:PlayerModeProps){
+export default function PlayerMode({player,dialogue,discoveredRegions,onDiscover,onDiscoverProp,onReadRoute,game}:PlayerModeProps){
  const canvasRef=useRef<HTMLCanvasElement>(null),keys=useRef(new Set<string>()),activeRegion=useRef<string|null>(null),activeProp=useRef<string|null>(null);
  const gameRef=useRef(game),statsRef=useRef(game?{...game.stats}:undefined),lastPublish=useRef(0),warpRemaining=useRef(12),lastDiscoveryPosition=useRef({x:player.current.x,y:player.current.y});
  const [notice,setNotice]=useState<Region|null>(null),[currentProp,setCurrentProp]=useState<MapProp|null>(null),[currentRegion,setCurrentRegion]=useState<Region|null>(null),[warning,setWarning]=useState<string|null>(null);
+ const currentRoads=useRef<Route[]>(nearbyRoutes(player.current.x,player.current.y)),[roadNames,setRoadNames]=useState(currentRoads.current);
  gameRef.current=game;
  useEffect(()=>{statsRef.current=game?{...game.stats}:undefined},[game?.stats]);
  const resize=useCallback(()=>{const canvas=canvasRef.current;if(!canvas)return;const d=Math.min(devicePixelRatio||1,2),box=canvas.getBoundingClientRect();canvas.width=Math.round(box.width*d);canvas.height=Math.round(box.height*d)},[]);
@@ -39,12 +43,12 @@ export default function PlayerMode({player,dialogue,discoveredRegions,onDiscover
  useEffect(()=>{if(dialogue)keys.current.clear()},[dialogue]);
  useEffect(()=>{
   const normalize=(key:string)=>key.toLowerCase().startsWith('arrow')?key:key.toLowerCase();
-  const down=(event:KeyboardEvent)=>{if(dialogue||event.ctrlKey||event.metaKey||event.altKey||(event.target as HTMLElement).closest('input,textarea,select,[contenteditable="true"]'))return;const key=normalize(event.key);if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','w','a','s','d'].includes(key)){event.preventDefault();keys.current.add(key)}else if(key==='e'&&!event.repeat){event.preventDefault();keys.current.clear();if(currentProp)onDiscoverProp(currentProp);else if(currentRegion)onDiscover(currentRegion)}};
+  const down=(event:KeyboardEvent)=>{if(dialogue||event.ctrlKey||event.metaKey||event.altKey||(event.target as HTMLElement).closest('input,textarea,select,[contenteditable="true"]'))return;const key=normalize(event.key);if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','w','a','s','d'].includes(key)){event.preventDefault();keys.current.add(key)}else if(key==='e'&&!event.repeat){event.preventDefault();keys.current.clear();if(currentProp)onDiscoverProp(currentProp);else if(currentRegion)onDiscover(currentRegion)}else if(key==='r'&&!event.repeat&&currentRoads.current[0]){event.preventDefault();keys.current.clear();onReadRoute(currentRoads.current[0])}};
   const up=(event:KeyboardEvent)=>keys.current.delete(normalize(event.key));
   const clear=()=>keys.current.clear();
   window.addEventListener('keydown',down);window.addEventListener('keyup',up);window.addEventListener('blur',clear);document.addEventListener('visibilitychange',clear);
   return()=>{window.removeEventListener('keydown',down);window.removeEventListener('keyup',up);window.removeEventListener('blur',clear);document.removeEventListener('visibilitychange',clear)};
- },[dialogue,currentProp,currentRegion,onDiscover,onDiscoverProp]);
+ },[dialogue,currentProp,currentRegion,onDiscover,onDiscoverProp,onReadRoute]);
  useEffect(()=>{
   let frame=0,last=performance.now();
   const tick=(now:number)=>{
@@ -78,6 +82,9 @@ export default function PlayerMode({player,dialogue,discoveredRegions,onDiscover
     }
    }
    const inMist=country==='mist';
+   // Resolve roads after gates and warps. This reads only the ground beneath
+   // the player: no distant names, fog discovery, stat rewards, or auto-dialogue.
+   if(!paused){const roads=nearbyRoutes(player.current.x,player.current.y,currentRoads.current[0]?.id);if(roads.map(route=>route.id).join('|')!==currentRoads.current.map(route=>route.id).join('|')){currentRoads.current=roads;setRoadNames(roads)}}
    if(rules&&statsRef.current&&!paused){
     const stats=statsRef.current;
     if(inMist){stats.concentration=clampMeter(stats.concentration-dt*1.15);stats.confusion=clampMeter(stats.confusion+dt*(confusionRates[entered?.id??'mist']??1.15))}else stats.confusion=clampMeter(stats.confusion-dt*.28);
@@ -111,6 +118,7 @@ export default function PlayerMode({player,dialogue,discoveredRegions,onDiscover
  const openLore=(region:Region)=>{setNotice(null);keys.current.clear();onDiscover(region)};
  return <div className="player-mode"><canvas ref={canvasRef} tabIndex={0} aria-label="Explore the landscape with arrow keys or the movement buttons"/><div className="dpad" aria-label="Touch movement controls">{(['up','left','down','right'] as const).map(direction=>{const key=direction==='up'?'w':direction==='left'?'a':direction==='down'?'s':'d';return <button key={direction} className={direction} aria-label={`Move ${direction}`} onPointerDown={event=>{event.preventDefault();event.currentTarget.setPointerCapture(event.pointerId);virtualKey(key,true)}} onPointerUp={()=>virtualKey(key,false)} onPointerCancel={()=>virtualKey(key,false)} onLostPointerCapture={()=>virtualKey(key,false)}>{direction==='up'?'▲':direction==='left'?'◀':direction==='down'?'▼':'▶'}</button>})}</div>
   {!dialogue&&(currentProp?<InteractionPrompt title={currentProp.name} eyebrow="A CURIOUS FIND" action="EXAMINE" onActivate={()=>{keys.current.clear();onDiscoverProp(currentProp)}}/>:currentRegion&&<InteractionPrompt title={currentRegion.name} eyebrow={notice?'AREA REVISITED':'YOU ARE HERE'} kind={currentRegion.id==='library'?'book':'lore'} action="EXPLORE THIS PLACE" onActivate={()=>openLore(currentRegion)}/>)}
+  {!dialogue&&roadNames.length>0&&<RoadsideSign key={roadNames.map(route=>route.id).join('|')} routes={roadNames} onRead={route=>{keys.current.clear();onReadRoute(route)}}/>}
   {warning&&!dialogue&&<div className="mist-warning" role="status">{warning}</div>}
  </div>;
 }
