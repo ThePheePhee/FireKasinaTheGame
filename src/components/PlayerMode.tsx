@@ -5,6 +5,7 @@ import type {Route} from '../data/routes';
 import {nearbyRoutes} from '../engine/nearbyRoutes';
 import {playerCamera} from '../engine/camera';
 import {movePlayer,type Player} from '../engine/movement';
+import {createMovementInput} from '../engine/movementInput';
 import {regionExtent} from '../engine/regionGeometry';
 import {applyExplorationAssists,clampMeter,FAIRY_ENTRY_CLARITY,FAIRY_ENTRY_CONCENTRATION,MIST_ENTRY_CONCENTRATION,type DiscoveryPoint,type ExplorationAssists,type GameStats} from '../game/gameState';
 import {countryAt,regionAt,worldEntryBarrier} from '../game/worldProgression';
@@ -31,7 +32,8 @@ const confusionRates:Record<string,number>={booboo:2.8,trauma:2.2,chasm:3.2,'cou
 const noAssists:ExplorationAssists={mist:false,fairy:false};
 
 export default function PlayerMode({player,dialogue,discoveredRegions,onDiscover,onDiscoverProp,onReadRoute,game}:PlayerModeProps){
- const canvasRef=useRef<HTMLCanvasElement>(null),keys=useRef(new Set<string>()),activeRegion=useRef<string|null>(null),activeProp=useRef<string|null>(null);
+ const [movementInput]=useState(createMovementInput);
+ const canvasRef=useRef<HTMLCanvasElement>(null),keys=useRef(movementInput.held),activeRegion=useRef<string|null>(null),activeProp=useRef<string|null>(null);
  const gameRef=useRef(game),statsRef=useRef(game?{...game.stats}:undefined),lastPublish=useRef(0),warpRemaining=useRef(12),lastDiscoveryPosition=useRef({x:player.current.x,y:player.current.y});
  const [notice,setNotice]=useState<Region|null>(null),[currentProp,setCurrentProp]=useState<MapProp|null>(null),[currentRegion,setCurrentRegion]=useState<Region|null>(null),[warning,setWarning]=useState<string|null>(null);
  const currentRoads=useRef<Route[]>(nearbyRoutes(player.current.x,player.current.y)),[roadNames,setRoadNames]=useState(currentRoads.current);
@@ -40,12 +42,12 @@ export default function PlayerMode({player,dialogue,discoveredRegions,onDiscover
  const resize=useCallback(()=>{const canvas=canvasRef.current;if(!canvas)return;const d=Math.min(devicePixelRatio||1,2),box=canvas.getBoundingClientRect();canvas.width=Math.round(box.width*d);canvas.height=Math.round(box.height*d)},[]);
  useEffect(()=>{resize();window.addEventListener('resize',resize);return()=>window.removeEventListener('resize',resize)},[resize]);
  useEffect(()=>{if(!warning)return;const timer=window.setTimeout(()=>setWarning(null),4200);return()=>clearTimeout(timer)},[warning]);
- useEffect(()=>{if(dialogue)keys.current.clear()},[dialogue]);
+ useEffect(()=>{if(dialogue)movementInput.clear()},[dialogue]);
  useEffect(()=>{
   const normalize=(key:string)=>key.toLowerCase().startsWith('arrow')?key:key.toLowerCase();
-  const down=(event:KeyboardEvent)=>{if(dialogue||event.ctrlKey||event.metaKey||event.altKey||(event.target as HTMLElement).closest('input,textarea,select,[contenteditable="true"]'))return;const key=normalize(event.key);if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','w','a','s','d'].includes(key)){event.preventDefault();keys.current.add(key)}else if(key==='e'&&!event.repeat){event.preventDefault();keys.current.clear();if(currentProp)onDiscoverProp(currentProp);else if(currentRegion)onDiscover(currentRegion)}else if(key==='r'&&!event.repeat&&currentRoads.current[0]){event.preventDefault();keys.current.clear();onReadRoute(currentRoads.current[0])}};
+  const down=(event:KeyboardEvent)=>{if(dialogue||event.ctrlKey||event.metaKey||event.altKey||(event.target as HTMLElement).closest('input,textarea,select,[contenteditable="true"]'))return;const key=normalize(event.key);if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','w','a','s','d'].includes(key)){event.preventDefault();keys.current.add(key)}else if(key==='e'&&!event.repeat){event.preventDefault();movementInput.clear();if(currentProp)onDiscoverProp(currentProp);else if(currentRegion)onDiscover(currentRegion)}else if(key==='r'&&!event.repeat&&currentRoads.current[0]){event.preventDefault();movementInput.clear();onReadRoute(currentRoads.current[0])}};
   const up=(event:KeyboardEvent)=>keys.current.delete(normalize(event.key));
-  const clear=()=>keys.current.clear();
+  const clear=()=>movementInput.clear();
   window.addEventListener('keydown',down);window.addEventListener('keyup',up);window.addEventListener('blur',clear);document.addEventListener('visibilitychange',clear);
   return()=>{window.removeEventListener('keydown',down);window.removeEventListener('keyup',up);window.removeEventListener('blur',clear);document.removeEventListener('visibilitychange',clear)};
  },[dialogue,currentProp,currentRegion,onDiscover,onDiscoverProp,onReadRoute]);
@@ -59,13 +61,14 @@ export default function PlayerMode({player,dialogue,discoveredRegions,onDiscover
    if(rules&&statsRef.current)statsRef.current=applyExplorationAssists(statsRef.current,rules.explorationAssists??noAssists);
    if(!paused){
     const before=player.current,beforeCountry=countryAt(before.x,before.y);
-    let next=movePlayer(before,keys.current,dt,WORLD.width,WORLD.height);
+    const movement=movementInput.frame(dt);
+    let next=movePlayer(before,movement.keys,movement.dt,WORLD.width,WORLD.height);
     if(rules&&statsRef.current&&beforeCountry==='mist'){
      const concentration=statsRef.current.concentration,pull=Math.max(0,Math.min(1,(MIST_ENTRY_CONCENTRATION-concentration)/25));
-     if(next.moving&&pull>0){const homeX=range.x-before.x,homeY=range.y-before.y,homeDistance=Math.hypot(homeX,homeY)||1,speed=190*dt;next.x=before.x+(next.x-before.x)*(1-pull)+homeX/homeDistance*speed*pull;next.y=before.y+(next.y-before.y)*(1-pull)+homeY/homeDistance*speed*pull;
+     if(next.moving&&pull>0){const homeX=range.x-before.x,homeY=range.y-before.y,homeDistance=Math.hypot(homeX,homeY)||1,speed=190*movement.dt;next.x=before.x+(next.x-before.x)*(1-pull)+homeX/homeDistance*speed*pull;next.y=before.y+(next.y-before.y)*(1-pull)+homeY/homeDistance*speed*pull;
       if(pull>.75)next.direction=Math.abs(homeX)>Math.abs(homeY)?homeX<0?'left':'right':homeY<0?'up':'down';
      }
-     if(next.moving){const wobble=statsRef.current.confusion/100*38*dt;next.x=Math.max(12,Math.min(WORLD.width-12,next.x+(Math.random()-.5)*wobble));next.y=Math.max(12,Math.min(WORLD.height-12,next.y+(Math.random()-.5)*wobble))}
+     if(next.moving){const wobble=statsRef.current.confusion/100*38*movement.dt;next.x=Math.max(12,Math.min(WORLD.width-12,next.x+(Math.random()-.5)*wobble));next.y=Math.max(12,Math.min(WORLD.height-12,next.y+(Math.random()-.5)*wobble))}
     }
     const barrier=rules&&statsRef.current?worldEntryBarrier(before,next,statsRef.current):null;
     if(barrier==='mist'){next={...before,moving:false};setWarning(`THE MISTS TURN YOU BACK · ${MIST_ENTRY_CONCENTRATION} CONCENTRATION REQUIRED`)}
@@ -99,11 +102,11 @@ export default function PlayerMode({player,dialogue,discoveredRegions,onDiscover
     if(entered){if(discoveredRegions.current.has(entered.id))setNotice(entered);else{
      discoveredRegions.current.add(entered.id);
      if(rules&&inMist&&statsRef.current){statsRef.current.clarity=clampMeter(statsRef.current.clarity+(entered.id==='mist'?3:8));rules.discovery.current.push({x:entered.x,y:entered.y,radius:Math.min(105,regionExtent(entered)+35)});rules.onStatsChange({...statsRef.current})}
-     keys.current.clear();onDiscover(entered);openedRegion=true;
+     movementInput.clear();onDiscover(entered);openedRegion=true;
     }}
    }
    if(!paused&&!openedRegion){const found=mapProps.find(prop=>Math.hypot(player.current.x-prop.x,player.current.y-prop.y)<Math.max(34,prop.size*.45))??null;
-    if(found?.id!==(activeProp.current??undefined)){activeProp.current=found?.id??null;setCurrentProp(found);if(found){const id=`prop:${found.id}`;if(!discoveredRegions.current.has(id)){discoveredRegions.current.add(id);keys.current.clear();onDiscoverProp(found)}}}
+    if(found?.id!==(activeProp.current??undefined)){activeProp.current=found?.id??null;setCurrentProp(found);if(found){const id=`prop:${found.id}`;if(!discoveredRegions.current.has(id)){discoveredRegions.current.add(id);movementInput.clear();onDiscoverProp(found)}}}
    }
    const camera=playerCamera(player.current.x,player.current.y,width,height,WORLD.width,WORLD.height);
    ctx.setTransform(d,0,0,d,0,0);ctx.imageSmoothingEnabled=false;ctx.clearRect(0,0,width,height);ctx.save();ctx.translate(-camera.x,-camera.y);
@@ -114,11 +117,11 @@ export default function PlayerMode({player,dialogue,discoveredRegions,onDiscover
   };
   frame=requestAnimationFrame(tick);return()=>cancelAnimationFrame(frame);
  },[dialogue,discoveredRegions,onDiscover,onDiscoverProp,player]);
- const virtualKey=(key:string,pressed:boolean)=>{if(pressed&&!dialogue)keys.current.add(key);else keys.current.delete(key)};
- const openLore=(region:Region)=>{setNotice(null);keys.current.clear();onDiscover(region)};
- return <div className="player-mode"><canvas ref={canvasRef} tabIndex={0} aria-label="Explore the landscape with arrow keys or the movement buttons"/><div className="dpad" aria-label="Touch movement controls">{(['up','left','down','right'] as const).map(direction=>{const key=direction==='up'?'w':direction==='left'?'a':direction==='down'?'s':'d';return <button key={direction} className={direction} aria-label={`Move ${direction}`} onPointerDown={event=>{event.preventDefault();event.currentTarget.setPointerCapture(event.pointerId);virtualKey(key,true)}} onPointerUp={()=>virtualKey(key,false)} onPointerCancel={()=>virtualKey(key,false)} onLostPointerCapture={()=>virtualKey(key,false)}>{direction==='up'?'▲':direction==='left'?'◀':direction==='down'?'▼':'▶'}</button>})}</div>
-  {!dialogue&&(currentProp?<InteractionPrompt title={currentProp.name} eyebrow="A CURIOUS FIND" action="EXAMINE" onActivate={()=>{keys.current.clear();onDiscoverProp(currentProp)}}/>:currentRegion&&<InteractionPrompt title={currentRegion.name} eyebrow={notice?'AREA REVISITED':'YOU ARE HERE'} kind={currentRegion.id==='library'?'book':'lore'} action="EXPLORE THIS PLACE" onActivate={()=>openLore(currentRegion)}/>)}
-  {!dialogue&&roadNames.length>0&&<RoadsideSign key={roadNames.map(route=>route.id).join('|')} routes={roadNames} onRead={route=>{keys.current.clear();onReadRoute(route)}}/>}
+ const virtualKey=(key:string,pressed:boolean)=>movementInput.setVirtual(key,pressed&&!dialogue&&!document.hidden);
+ const openLore=(region:Region)=>{setNotice(null);movementInput.clear();onDiscover(region)};
+ return <div className="player-mode"><canvas ref={canvasRef} tabIndex={0} aria-label="Explore the landscape with arrow keys or the movement buttons"/><div className="dpad" aria-label="Touch movement controls">{(['up','left','down','right'] as const).map(direction=>{const key=direction==='up'?'w':direction==='left'?'a':direction==='down'?'s':'d';return <button key={direction} className={direction} aria-label={`Move ${direction}`} onPointerDown={event=>{event.preventDefault();event.currentTarget.setPointerCapture(event.pointerId);virtualKey(key,true)}} onPointerUp={()=>virtualKey(key,false)} onPointerCancel={()=>virtualKey(key,false)} onLostPointerCapture={()=>virtualKey(key,false)} onBlur={()=>virtualKey(key,false)} onKeyDown={event=>{if(event.key===' '||event.key==='Enter'){event.preventDefault();virtualKey(key,true)}}} onKeyUp={event=>{if(event.key===' '||event.key==='Enter'){event.preventDefault();virtualKey(key,false)}}} onClick={event=>{if(event.detail===0&&!dialogue&&!document.hidden)movementInput.nudge(key)}}>{direction==='up'?'▲':direction==='left'?'◀':direction==='down'?'▼':'▶'}</button>})}</div>
+  {!dialogue&&(currentProp?<InteractionPrompt title={currentProp.name} eyebrow="A CURIOUS FIND" action="EXAMINE" onActivate={()=>{movementInput.clear();onDiscoverProp(currentProp)}}/>:currentRegion&&<InteractionPrompt title={currentRegion.name} eyebrow={notice?'AREA REVISITED':'YOU ARE HERE'} kind={currentRegion.id==='library'?'book':'lore'} action="EXPLORE THIS PLACE" onActivate={()=>openLore(currentRegion)}/>)}
+  {!dialogue&&roadNames.length>0&&<RoadsideSign key={roadNames.map(route=>route.id).join('|')} routes={roadNames} onRead={route=>{movementInput.clear();onReadRoute(route)}}/>}
   {warning&&!dialogue&&<div className="mist-warning" role="status">{warning}</div>}
  </div>;
 }

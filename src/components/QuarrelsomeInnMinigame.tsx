@@ -1,7 +1,10 @@
-import {useEffect, useRef, useState} from 'react';
+import {useCallback, useEffect, useRef, useState} from 'react';
 import type {GameStats} from '../game/gameState';
 import {innDebaters, validateInnDialogues, type DialogueReply} from '../data/quarrelsomeConversations';
 import {advanceInnConversation, createInnSession, getAvailableInnReplies, getInnNode, leaveInnConversation, settleInnResult} from '../game/innDialogue';
+import {activityKey} from '../game/activitySession';
+import {useMinigameSession,useMinigameStats} from '../game/useMinigameSession';
+import MinigameSessionControls from './MinigameSessionControls';
 import './QuarrelsomeDialogues.css';
 import './QuarrelsomeInnMinigame.css';
 
@@ -11,7 +14,9 @@ export default function QuarrelsomeInnMinigame({stats, onChange, onExit}: {stats
   const containerRef = useRef<HTMLElement>(null);
   const dialogueRef = useRef<HTMLDivElement>(null);
   const lineRef = useRef<HTMLParagraphElement>(null);
-  const settled = useRef(false);
+  const settled = useRef(false), settlementBase = useRef<GameStats|null>(null);
+  const {latest,publish}=useMinigameStats(stats,onChange);
+  const activity=useMinigameSession(()=>{});
   const [{debater, scenario}] = useState(() => {
     const debater = innDebaters[Math.floor(Math.random() * innDebaters.length)];
     return {debater, scenario: debater.scenarios[Math.floor(Math.random() * debater.scenarios.length)]};
@@ -19,27 +24,32 @@ export default function QuarrelsomeInnMinigame({stats, onChange, onExit}: {stats
   const [session, setSession] = useState(createInnSession);
   const {result, history} = session;
   const node = getInnNode(scenario, session.nodeId);
-  const replies = getAvailableInnReplies(scenario, session, stats);
+  const replies = getAvailableInnReplies(scenario, session, latest.current);
   const last = history[history.length - 1];
   const mood = last?.tone ?? 'listening';
   const unavailable = integrityIssues.length > 0 || !node;
 
   const choose = (reply: DialogueReply) => {
+    if(!activity.controller.running)return;
     const exchange = history.length;
     // A double tap from the old scene cannot accidentally choose a reply in the new one.
-    setSession(current => current.history.length !== exchange ? current : advanceInnConversation(scenario, current, reply, stats));
+    setSession(current => current.history.length !== exchange ? current : advanceInnConversation(scenario, current, reply, latest.current));
   };
-  const finish = () => {
-    if (!result || settled.current) return;
-    settled.current = true;
-    onChange(settleInnResult(stats, result));
-    onExit();
+  const settleResult=useCallback(()=>{
+    if(!result||settled.current)return;
+    settled.current=true;settlementBase.current={...latest.current};
+    latest.current=settleInnResult(latest.current,result);publish();
+  },[latest,publish,result]);
+  const finish=()=>{
+    if(!result)return;
+    activity.exit(()=>{settleResult();onExit()});
   };
-  const leave = () => {
-    if (result) return finish();
-    if (!history.length || unavailable) return onExit();
+  const leave=()=>{
+    if(result)return finish();
+    if(!history.length||unavailable)return activity.exit(onExit);
     setSession(leaveInnConversation);
   };
+  useEffect(()=>{if(result){settleResult();activity.complete()}else if(unavailable)activity.complete()},[activity.complete,result,settleResult,unavailable]);
 
   useEffect(() => {
     dialogueRef.current?.scrollTo({top: 0});
@@ -49,12 +59,13 @@ export default function QuarrelsomeInnMinigame({stats, onChange, onExit}: {stats
 
   useEffect(() => {
     const handleKey = (event: KeyboardEvent) => {
-      if (event.defaultPrevented || event.repeat || event.ctrlKey || event.metaKey || event.altKey) return;
-      if (event.key === 'Escape') {
+      const key=activityKey(event);
+      if (!key || event.repeat) return;
+      if (key === 'Escape' && (result || unavailable)) {
         event.preventDefault();
         leave();
-      } else if (!unavailable && !result && /^[1-9]$/.test(event.key)) {
-        const reply = replies[Number(event.key) - 1];
+      } else if (activity.controller.running && !unavailable && !result && /^[1-9]$/.test(key)) {
+        const reply = replies[Number(key) - 1];
         if (reply) {event.preventDefault(); choose(reply);}
       }
     };
@@ -69,15 +80,17 @@ export default function QuarrelsomeInnMinigame({stats, onChange, onExit}: {stats
     <div className="speech-runes">{history.slice(-7).map((entry, index) => <i key={index} className={entry.tone}/>)}</div>
   </div>;
 
-  return <section ref={containerRef} className={`inn-minigame inn-mood-${mood}`} role="dialog" aria-modal="true" aria-labelledby="inn-title">
+  return <section ref={containerRef} className={`inn-minigame inn-mood-${mood}`} role="dialog" aria-modal="true" aria-labelledby="inn-title" data-activity-paused={!activity.controller.running}>
+    <MinigameSessionControls session={activity} title="THE QUARRELSOME INN" instructions="Listen to your fellow traveler, then choose a reply or press its number. Follow the conversation: sometimes a correction helps; sometimes another argument only tightens the knot." meaning="Replies change where the conversation leads. The outcome can change clarity, confusion and concentration. Leaving an unfinished exchange still carries its consequences." onLeave={leave}/>
     <header><small>MISTS OF PURIFICATION · TABLE {debater.sprite + 1}</small><h1 id="inn-title">THE QUARRELSOME INN</h1><p>Correct what matters, release what does not, and try not to become the furniture.</p></header>
-    {unavailable ? <div className="inn-result partial"><small>THE INNKEEPER INTERVENES</small><h2>THE ARGUMENT NEEDS REPAIR</h2><p>A loose conversational thread was caught before it could tangle the whole game. Please try another table.</p><button onClick={onExit}>RETURN TO THE MISTS</button></div>
+    {unavailable ? <div className="inn-result partial"><small>THE INNKEEPER INTERVENES</small><h2>THE ARGUMENT NEEDS REPAIR</h2><p>A loose conversational thread was caught before it could tangle the whole game. Please try another table.</p><button onClick={leave}>RETURN TO THE MISTS</button></div>
       : result ? <>
         <div className="result-room">{room}</div>
         <div className={`inn-result ${result.grade}`} role="status"><small>{result.grade.toUpperCase()} · {history.length} EXCHANGES</small><h2>{result.title}</h2><p>{result.copy}</p>
           <div className="inn-outcome-meters" aria-label="Changes from this conversation">
             {(['clarity', 'confusion', 'concentration'] as const).map(key => {
-              const change = settleInnResult(stats, result)[key] - stats[key];
+              const base=settlementBase.current??latest.current;
+              const change = settleInnResult(base, result)[key] - base[key];
               return <span key={key}>{key} <b>{change > 0 ? '+' : ''}{change}</b></span>;
             })}
           </div>
@@ -91,7 +104,7 @@ export default function QuarrelsomeInnMinigame({stats, onChange, onExit}: {stats
         {session.visits[session.nodeId] > 1 && <p className="inn-returning-thread">The same question returns. Untie the knot before it becomes another lap.</p>}
         <div className="conversation-thread"><span>CONVERSATION THREAD</span>{history.length ? <b aria-label={`${history.length} exchanges`}>{history.map((entry, index) => <i aria-hidden="true" key={index} className={entry.tone}/>)}</b> : <em>LISTENING…</em>}</div>
         {replies.map((reply, index) => <button key={`${session.nodeId}:${reply.text}`} onClick={() => choose(reply)}><span aria-hidden="true">{index + 1}</span>{reply.text}</button>)}
-        <footer>Choose a reply · keys 1–{replies.length} · Esc to leave</footer>
+        <footer>Choose a reply · keys 1–{replies.length} · Esc / P to pause</footer>
       </div></div>}
     {!result && !unavailable && <button className="leave-inn" onClick={leave}>LEAVE THE ARGUMENT</button>}
   </section>;

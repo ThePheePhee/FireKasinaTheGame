@@ -1,0 +1,13 @@
+{
+  "format": "fire-kasina-journey",
+  "journey": {
+    "version": 1,
+    "savedAt": 0,
+    "stats": {"concentration": 42, "clarity": 84, "confusion": 7},
+    "player": {"x": 960, "y": 760, "direction": "down"},
+    "discoveredRegions": ["house", "garden", "red-dot"],
+    "notebook": ["route:artificer"],
+    "assists": {"mist": false, "fairy": false},
+    "discovery": []
+  }
+}

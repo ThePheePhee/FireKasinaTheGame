@@ -1,5 +1,9 @@
 /* Shared chrome. Scene interiors and minigames own their own headers. */
 .world-surface { position: absolute; inset: 0; }
+.mist-warning { pointer-events: none; }
+@media (max-width: 760px) {
+  .mist-warning { bottom: max(185px, calc(env(safe-area-inset-bottom) + 175px)); width: calc(100% - 32px); }
+}
 .atlas-surface { top: 76px; }
 .red-dot-game .practice-meter { margin-left: 0; margin-right: 0; max-width: 100%; }
 .trauma-labyrinth .maze-frame { max-width: 100%; }

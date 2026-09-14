@@ -4,6 +4,7 @@ import {routes,type Route,type RouteFamily} from '../data/routes';
 import {pathContent} from '../data/pathContent';
 import {mapProps,type MapProp} from '../data/mapProps';
 import {regionVisuals} from '../data/regionVisuals';
+import {HOMESTEAD_IDS} from '../game/gameState';
 import {worldToScreen} from '../engine/mapViewport';
 import {useMapNavigation} from '../engine/useMapNavigation';
 import {regionExtent} from '../engine/regionGeometry';
@@ -20,9 +21,14 @@ const families:Array<{id:RouteFamily;name:string;hint:string}>=[
  {id:'connection',name:'Connecting roads',hint:'Passages between discoveries'},
 ];
 
+export function PathNameToggle({enabled=true,onToggle}:{enabled?:boolean;onToggle:()=>void}){
+ return <button type="button" className="guide-label-option" aria-label="Show path names on the map" aria-pressed={enabled} onClick={onToggle}>Path labels: {enabled?'visible':'hidden'}</button>;
+}
+
 export default function MapMode({onSelectRegion,onSelectRoute,onSelectProp,onClear,selectedRouteId}:{onSelectRegion:(region:Region)=>void;onSelectRoute:(route:Route)=>void;onSelectProp:(prop:MapProp)=>void;onClear:()=>void;selectedRouteId?:string|null}){
- const containerRef=useRef<HTMLDivElement>(null),canvasRef=useRef<HTMLCanvasElement>(null),guideToggleRef=useRef<HTMLButtonElement>(null),guideCloseRef=useRef<HTMLButtonElement>(null);
+ const containerRef=useRef<HTMLDivElement>(null),canvasRef=useRef<HTMLCanvasElement>(null),guideToggleRef=useRef<HTMLButtonElement>(null),placesToggleRef=useRef<HTMLButtonElement>(null),guideCloseRef=useRef<HTMLButtonElement>(null),guideOrigin=useRef<'places'|'paths'>('paths');
  const [artRevision,setArtRevision]=useState(0),[showNames,setShowNames]=useState(true),[indexOpen,setIndexOpen]=useState(false),[localRoute,setLocalRoute]=useState<string|null>(null);
+ const [guideTab,setGuideTab]=useState<'places'|'paths'>('paths'),[locatedRegion,setLocatedRegion]=useState<string|null>(null);
  const selectedId=selectedRouteId===undefined?localRoute:selectedRouteId;
  const chooseRoute=(route:Route)=>{setLocalRoute(route.id);setIndexOpen(false);onSelectRoute(route)};
  const activate=(target:string)=>{
@@ -32,10 +38,12 @@ export default function MapMode({onSelectRegion,onSelectRoute,onSelectProp,onCle
   else if(kind==='prop'){const prop=mapProps.find(item=>item.id===id);if(prop){setLocalRoute(null);onSelectProp(prop)}}
   else{setLocalRoute(null);onClear()}
  };
- const {size,viewport,bindings,zoom,reset}=useMapNavigation(containerRef,WORLD,activate);
+ const {size,viewport,bindings,zoom,reset,focus}=useMapNavigation(containerRef,WORLD,activate);
+ const locateRegion=(region:Region)=>{const visual=regionVisuals[region.id],offset=visual?.artOffset??[0,0],extent=visual?.artSize??regionExtent(region)*2;setLocatedRegion(region.id);setLocalRoute(null);setIndexOpen(false);focus({x:region.x+offset[0],y:region.y+offset[1],width:Math.max(280,extent+90),height:Math.max(260,extent+100)})};
+ const placeGroups=[{name:'Familiar homestead',regions:mapRegions.filter(region=>HOMESTEAD_IDS.has(region.id))},{name:'The wider landscape',regions:mapRegions.filter(region=>!HOMESTEAD_IDS.has(region.id))}];
  const compact=size.width<760;
  const overview=isCompactRouteOverview(viewport,size,compact,WORLD);
- const closeGuide=()=>{setIndexOpen(false);guideToggleRef.current?.focus()};
+ const closeGuide=()=>{setIndexOpen(false);(guideOrigin.current==='places'?placesToggleRef:guideToggleRef).current?.focus()};
  const propLabelBounds=useMemo(()=>mapProps.map(prop=>{const point=worldToScreen(viewport,prop.x,prop.y),width=prop.size*viewport.scale;return{x:point.x-width/2,y:point.y-width/2,width,height:width}}),[viewport]);
  const locationLabels=useMemo(()=>layoutLocationLabels(mapRegions,regionVisuals,viewport,propLabelBounds,size),[viewport,propLabelBounds,size]);
  const labels=useMemo(()=>{
@@ -77,22 +85,23 @@ export default function MapMode({onSelectRegion,onSelectRoute,onSelectProp,onCle
     const polygon=region.shape.kind==='polygon',clipPath=region.shape.kind==='polygon'?`polygon(${region.shape.points.map(([x,y])=>`${(x/extent+1)*50}% ${(y/extent+1)*50}%`).join(',')})`:undefined;
     return <button type="button" key={region.id} data-map-target={`region:${region.id}`} className="map-region-hit" style={{left:point.x,top:point.y,width:diameter,height:diameter,zIndex:region.layer*1000+Math.max(1,1000-Math.round(extent)),clipPath,borderRadius:polygon?0:undefined}} aria-label={`Open ${region.name}`} title={region.name} onClick={()=>activate(`region:${region.id}`)}/>;
    })}</div>
-   <div className="map-label-layer" aria-hidden="true">{locationLabels.map(label=><button type="button" key={label.region.id} tabIndex={-1} data-map-target={`region:${label.region.id}`} className={`map-location-label ${label.broad?'broad':''}`} title={label.region.name} style={{left:label.x,top:label.y,width:label.width,height:label.height,fontSize:label.fontSize,lineHeight:`${label.lineHeight}px`}} onClick={()=>activate(`region:${label.region.id}`)}>{label.lines.map((line,index)=><span key={index}>{line}</span>)}</button>)}</div>
+   <div className="map-label-layer" aria-hidden="true">{locationLabels.map(label=><button type="button" key={label.region.id} tabIndex={-1} data-map-target={`region:${label.region.id}`} className={`map-location-label ${label.broad?'broad':''} ${locatedRegion===label.region.id?'located':''}`} title={label.region.name} style={{left:label.x,top:label.y,width:label.width,height:label.height,fontSize:label.fontSize,lineHeight:`${label.lineHeight}px`}} onClick={()=>activate(`region:${label.region.id}`)}>{label.lines.map((line,index)=><span key={index}>{line}</span>)}</button>)}</div>
    <div className="route-layer" aria-label="Named map paths">
     <svg className="route-sign-stems" width={size.width} height={size.height} aria-hidden="true">{labels.map(label=><g key={label.route.id}><path d={`M ${label.anchor.x} ${label.anchor.y} H ${label.stem.x} V ${label.stem.y}`}/><rect x={label.anchor.x-2} y={label.anchor.y-2} width="4" height="4"/></g>)}</svg>
     {labels.map(label=><button type="button" key={label.route.id} data-map-target={`route:${label.route.id}`} className={`map-road-sign ${label.route.family} ${selectedId===label.route.id?'selected':''}`} style={{left:label.x,top:label.y,width:label.width,height:label.height}} aria-label={`Read about ${label.route.name}`} onClick={()=>chooseRoute(label.route)}>{label.lines.map((line,index)=><span key={index}>{line}</span>)}</button>)}
    </div>
    <div className="prop-layer" aria-label="Curious map objects">{mapProps.map(prop=>{const point=worldToScreen(viewport,prop.x,prop.y),hitSize=Math.max(44,prop.size*viewport.scale);return <button type="button" key={prop.id} data-map-target={`prop:${prop.id}`} className="map-prop-hit" style={{left:point.x,top:point.y,width:hitSize,height:hitSize}} aria-label={`Inspect ${prop.name}`} title={prop.name} onClick={()=>activate(`prop:${prop.id}`)}/>})}</div>
-   <div className="map-tools" aria-label="Map zoom controls"><button type="button" aria-label="Zoom in" onClick={()=>zoom(1.5)}>+</button><button type="button" aria-label="Zoom out" onClick={()=>zoom(1/1.5)}>−</button><button type="button" aria-label="Reset map view" onClick={reset}>⌂</button></div>
+   <div className="map-tools" aria-label="Map zoom controls"><button type="button" aria-label="Zoom in" onClick={()=>zoom(1.5)}>+</button><button type="button" aria-label="Zoom out" onClick={()=>zoom(1/1.5)}>−</button><button type="button" aria-label="Show whole map" title="Show whole map" onClick={()=>{reset();setLocatedRegion(null)}}>⛶</button></div>
   </div>
   <div className="map-route-guide">
    {compact&&<p className="map-explore-hint">{!showNames?'Path labels hidden · All names below':overview?'Zoom in for more path names':'Tap a path name to read its story'}</p>}
    {indexOpen&&<section className="map-route-index" id="map-route-index" aria-labelledby="map-route-index-title">
-    <header><div><small>THE WAYFARER’S GUIDE</small><h2 id="map-route-index-title">All {routes.length} named paths</h2></div><button ref={guideCloseRef} type="button" aria-label="Close named paths" onClick={closeGuide}>×</button></header>
-    <p>Every road is here, even when its sign is hidden. Choose a name to trace the path and read its story.</p>
-    <div className="route-index-scroll">{families.map(family=><section key={family.id} className={family.id}><h3><i/>{family.name}</h3><p>{family.hint}</p>{routes.filter(route=>route.family===family.id).map(route=><button type="button" key={route.id} aria-current={selectedId===route.id?'true':undefined} onClick={()=>{reset();setShowNames(true);chooseRoute(route)}}><span><strong>{route.name}</strong><small>{pathContent[route.id]?.journey}</small></span><b aria-hidden="true">↗</b></button>)}</section>)}</div>
+    <header><div><small>THE WAYFARER’S GUIDE</small><h2 id="map-route-index-title">{guideTab==='paths'?`All ${routes.length} named paths`:'Find a place'}</h2></div><button ref={guideCloseRef} type="button" aria-label="Close map guide" onClick={closeGuide}>×</button></header>
+    <div className="map-guide-tabs" aria-label="Map guide sections"><button type="button" aria-pressed={guideTab==='places'} onClick={()=>setGuideTab('places')}>Places</button><button type="button" aria-pressed={guideTab==='paths'} onClick={()=>setGuideTab('paths')}>Named paths</button></div>
+    <p>{guideTab==='paths'?'Every road is here, even when its sign is hidden. Choose a name to trace the path and read its story.':'Locate brings the landmark into view. Read opens its story; nothing moves your wizard.'}</p>
+    {guideTab==='paths'?<><PathNameToggle enabled={showNames} onToggle={()=>setShowNames(value=>!value)}/><div className="route-index-scroll">{families.map(family=><section key={family.id} className={family.id}><h3><i/>{family.name}</h3><p>{family.hint}</p>{routes.filter(route=>route.family===family.id).map(route=><button type="button" key={route.id} aria-current={selectedId===route.id?'true':undefined} onClick={()=>{reset();setShowNames(true);chooseRoute(route)}}><span><strong>{route.name}</strong><small>{pathContent[route.id]?.journey}</small></span><b aria-hidden="true">↗</b></button>)}</section>)}</div></>:<div className="map-place-scroll">{placeGroups.map(group=><section key={group.name}><h3>{group.name}</h3>{group.regions.map(region=><div className="map-place-row" key={region.id}><button type="button" className="map-place-locate" aria-label={`Locate ${region.name}`} onClick={()=>locateRegion(region)}><span>{region.name}</span><b aria-hidden="true">⌖</b></button><button type="button" aria-label={`Read about ${region.name}`} onClick={()=>{setIndexOpen(false);activate(`region:${region.id}`)}}>Read</button></div>)}</section>)}</div>}
    </section>}
-   <div className="route-guide-controls"><button ref={guideToggleRef} type="button" className="route-guide-toggle" aria-label={`Named paths: browse all ${routes.length} roads`} aria-expanded={indexOpen} aria-controls="map-route-index" onClick={()=>setIndexOpen(value=>!value)}><span aria-hidden="true">☷</span> NAMED PATHS <b>{routes.length}</b><span aria-hidden="true">{indexOpen?'▾':'▴'}</span></button><button type="button" className="route-names-toggle" aria-label="Show path names on the map" aria-pressed={showNames} onClick={()=>setShowNames(value=>!value)}>LABELS {showNames?'ON':'OFF'}</button></div>
+   <div className="route-guide-controls"><button ref={guideToggleRef} type="button" className="route-guide-toggle" aria-label={`Named paths: browse all ${routes.length} roads`} aria-expanded={indexOpen&&guideTab==='paths'} aria-controls="map-route-index" onClick={()=>{guideOrigin.current='paths';setGuideTab('paths');setIndexOpen(value=>guideTab==='paths'?!value:true)}}><span aria-hidden="true">☷</span> NAMED PATHS <b>{routes.length}</b></button><button ref={placesToggleRef} type="button" className="map-places-toggle" aria-label="Find places on the map" aria-expanded={indexOpen&&guideTab==='places'} aria-controls="map-route-index" onClick={()=>{guideOrigin.current='places';setGuideTab('places');setIndexOpen(value=>guideTab==='places'?!value:true)}}>⌖ PLACES</button></div>
    <div className="path-legend" aria-label="Path families"><span><i className="generation"/>Generation</span><span><i className="deconstruction"/>Deconstruction</span><span><i className="balance"/>Balance</span></div>
   </div>
  </div>;

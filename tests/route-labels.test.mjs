@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createElement} from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
-import MapMode from '../src/components/MapMode.tsx';
+import MapMode,{PathNameToggle} from '../src/components/MapMode.tsx';
 import {routes} from '../src/data/routes.ts';
 import {mapRegions,WORLD} from '../src/data/mapRegions.ts';
 import {regionVisuals} from '../src/data/regionVisuals.ts';
@@ -34,12 +34,18 @@ test('signs keep complete names and split only between words',()=>{
  assert.equal(splitRouteName('The Road of Splendid Reappearance').length,2);
 });
 
-test('the route guide visibly names its purpose and starts with map labels enabled',()=>{
+test('map guides visibly offer places and named paths, and the path label control retains its state',()=>{
  const html=renderToStaticMarkup(createElement(MapMode,{onSelectRegion(){},onSelectRoute(){},onSelectProp(){},onClear(){}}));
  assert.match(html,new RegExp(`aria-label="Named paths: browse all ${routes.length} roads"`));
  assert.match(html,/NAMED PATHS/);
  assert.match(html,/aria-controls="map-route-index"/);
- assert.match(html,/aria-label="Show path names on the map" aria-pressed="true"/);
+ assert.match(html,/aria-label="Find places on the map"/);
+ const enabled=renderToStaticMarkup(createElement(PathNameToggle,{onToggle(){}}));
+ assert.match(enabled,/aria-label="Show path names on the map" aria-pressed="true"/);
+ assert.match(enabled,/Path labels: visible/);
+ const disabled=renderToStaticMarkup(createElement(PathNameToggle,{enabled:false,onToggle(){}}));
+ assert.match(disabled,/aria-pressed="false"/);
+ assert.match(disabled,/Path labels: hidden/);
 });
 
 test('desktop overview lays out readable road names without covering landmark art or one another',()=>{

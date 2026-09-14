@@ -20,7 +20,7 @@ export default function LoreDialog({title, eyebrow, className = '', onClose, chi
         event.stopImmediatePropagation();
         closeRef.current();
       } else if (event.key === 'Tab') {
-        const choices = Array.from(panel.current?.querySelectorAll<HTMLElement>('button:not(:disabled), a[href], input:not(:disabled), summary, [tabindex="0"]') ?? []).filter(element => element.getClientRects().length > 0);
+        const choices = Array.from(panel.current?.querySelectorAll<HTMLElement>('button:not(:disabled), a[href], input:not(:disabled), select:not(:disabled), textarea:not(:disabled), summary, [tabindex="0"]') ?? []).filter(element => element.getClientRects().length > 0);
         if (!choices.length) { event.preventDefault(); return; }
         const index = choices.indexOf(document.activeElement as HTMLElement);
         if (event.shiftKey && index <= 0) { event.preventDefault(); choices[choices.length - 1].focus(); }

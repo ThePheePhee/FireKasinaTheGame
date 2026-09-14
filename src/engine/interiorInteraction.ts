@@ -21,6 +21,11 @@ export function interactionKind(zone: InteriorZone): 'book' | 'talk' | 'lore' {
   return zone.id.startsWith('npc-') ? 'talk' : zone.references?.length || zone.reference ? 'book' : 'lore';
 }
 
+/** Both atlas reading and walking encounters use the same journal identity. */
+export function interiorLoreEntryId(map:InteriorMap,floor:InteriorFloor,zone:InteriorZone):string {
+  return zone.id.startsWith('entry-')?`floor:${map.id}:${floor.id}`:`interior:${map.id}:${floor.id}:${zone.id}`;
+}
+
 export function interactionAnchor(zone: InteriorZone, environment?: InteriorFloor['environment']): [number,number] {
   if (zone.id.startsWith('npc-')) return [zone.x,zone.y-72];
   if (environment === 'library') return [zone.x,zone.y+zone.h*.32];

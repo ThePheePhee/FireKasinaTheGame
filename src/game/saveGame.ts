@@ -1,5 +1,6 @@
 import {mapRegions, WORLD} from '../data/mapRegions';
 import {mapProps} from '../data/mapProps';
+import {sanitizeNotebook} from './journal';
 import type {Player} from '../engine/movement';
 import {applyExplorationAssists, clampMeter, initialDiscovery, initialGameStats, type DiscoveryPoint, type ExplorationAssists, type GameStats} from './gameState';
 
@@ -12,6 +13,7 @@ export interface SavedJourney {
   discoveredRegions: string[];
   discovery: DiscoveryPoint[];
   assists: ExplorationAssists;
+  notebook: string[];
 }
 
 const object = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null;
@@ -28,6 +30,7 @@ export function createJourney(): SavedJourney {
     discoveredRegions: ['house', 'garden', 'red-dot'],
     discovery: initialDiscovery.map(point => ({...point})),
     assists: {mist: false, fairy: false},
+    notebook: [],
   };
 }
 
@@ -62,10 +65,24 @@ export function parseJourney(raw: string | null): SavedJourney | null {
       discoveredRegions: [...new Set([...fresh.discoveredRegions, ...(Array.isArray(value.discoveredRegions) ? value.discoveredRegions.filter((id): id is string => typeof id === 'string' && regionIds.has(id)) : [])])],
       discovery: [...new Map([...fresh.discovery, ...points].map(point => [`${point.x},${point.y},${point.radius}`, point])).values()],
       assists,
+      notebook: sanitizeNotebook(value.notebook),
     };
   } catch {
     return null;
   }
+}
+
+export const MAX_JOURNEY_FILE_BYTES = 2 * 1024 * 1024;
+export function exportJourney(journey: SavedJourney): string {
+  return JSON.stringify({format: 'fire-kasina-journey', journey}, null, 2);
+}
+export function importJourney(raw: string): SavedJourney | null {
+  if (raw.length > MAX_JOURNEY_FILE_BYTES) return null;
+  try {
+    const value: unknown = JSON.parse(raw);
+    if (!object(value) || value.format !== 'fire-kasina-journey' || !object(value.journey)) return null;
+    return parseJourney(JSON.stringify(value.journey));
+  } catch { return null; }
 }
 
 export function loadJourney(): SavedJourney | null {

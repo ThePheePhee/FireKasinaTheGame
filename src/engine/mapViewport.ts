@@ -3,6 +3,7 @@ import type {View} from './camera';
 
 export interface ScreenSize{width:number;height:number}
 export interface MapBounds{width:number;height:number}
+export interface MapFocusTarget{x:number;y:number;width:number;height:number}
 
 export function fitMap(size:ScreenSize,bounds:MapBounds=WORLD):View{
  const width=Math.max(1,size.width),height=Math.max(1,size.height),scale=Math.min(width/bounds.width,height/bounds.height);
@@ -29,3 +30,10 @@ export function resizeMap(view:View,previous:ScreenSize,next:ScreenSize,bounds:M
 }
 
 export function worldToScreen(view:View,x:number,y:number){return{x:(x-view.x)*view.scale,y:(y-view.y)*view.scale}}
+
+/** Frame a real place, including its approach, without requiring precision pinching. */
+export function focusMapTarget(target:MapFocusTarget,size:ScreenSize,bounds:MapBounds=WORLD):View{
+ if(![target.x,target.y,target.width,target.height].every(Number.isFinite))return fitMap(size,bounds);
+ const padding=42,scale=mapScale(Math.min(1.35,size.width/(Math.max(80,target.width)+padding*2),size.height/(Math.max(80,target.height)+padding*2)),size,bounds);
+ return constrainMap({x:target.x-size.width/(2*scale),y:target.y-size.height/(2*scale),scale},size,bounds);
+}

@@ -1,0 +1,20 @@
+/* Closing the eyes changes the field itself. The room must not depend on a
+   translucent overlay being composited correctly beneath animated targets. */
+.red-dot-game:not(.phase-candle) .candle-chamber {
+  background-image: none;
+  background-color: #05050c;
+  box-shadow: 0 0 28px #2c153a66, inset 0 0 35px #000;
+}
+.red-dot-game:not(.phase-candle) .closed-eye-shade {
+  background: radial-gradient(circle, #15101d 0, #03040b 72%);
+  opacity: 1;
+}
+@media (max-width: 700px) {
+  .red-dot-game .phase-comment {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+  }
+  .red-dot-game .phase-comment b { font-size: 7px; }
+  .red-dot-game .phase-comment span { max-width: none; font-size: 19px; line-height: 1.15; }
+}

@@ -1,3 +1,8 @@
+/**
+ * @deprecated Historical card-map prototype, retained for design history only.
+ * The live Game and Sandbox interiors both use interiorMaps.ts. Edit teaching
+ * content there; importing this prototype would reintroduce obsolete summaries.
+ */
 export type AtlasCell=readonly [number,number];
 export interface SubMapRoom {id:string;name:string;copy:string;art:AtlasCell;reference?:{label:string;url:string}}
 export interface SubMapLevel {id:string;name:string;subtitle:string;rooms:SubMapRoom[]}
