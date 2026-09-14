@@ -82,6 +82,28 @@ test('floating interaction badges cannot duplicate or cover a readable caption',
  assert.equal(showInteriorCaptionMarker('another-place',{x:10,y:10},labels),true);
 });
 
+test('Arising and Passing Away remains named beside the player with the HUD outside the landscape',()=>{
+ const map=interiorMaps.find(map=>map.regionId==='tower'),floor=map.floors[1],source=interiorCaptions(map,floor,1);
+ const oldSize={width:1280,height:700},oldView=playerCamera(1340,850,oldSize.width,oldSize.height,floor.width,floor.height);
+ // Reproduce the oversized information-panel exclusion that erased this sign.
+ assert.equal(layoutInteriorCaptions(source,oldView,oldSize,[{x:878,y:480,width:402,height:220}],floor).some(label=>label.caption.id==='arising'),false);
+ for(const size of [{width:1280,height:526},{width:390,height:526},{width:844,height:210}]){
+  const view=playerCamera(1340,850,size.width,size.height,floor.width,floor.height);
+  const labels=layoutInteriorCaptions(source,view,size,[],floor),label=labels.find(label=>label.caption.id==='arising');
+  assert.ok(label,`Arising name missing in ${size.width}×${size.height} walking viewport`);
+  assert.equal(label.lines.join(' '),source.find(caption=>caption.id==='arising').name);
+  assert.equal(showInteriorCaptionMarker('arising',label.anchor,labels,{width:150,height:66}),false);
+ }
+});
+
+test('wide Read badges yield to neighbouring names using their actual footprint',()=>{
+ const floor=divine.floors[0],size={width:1280,height:650};
+ const labels=layoutInteriorCaptions(interiorCaptions(divine,floor,0),fitMap(size,floor),size,[],floor),label=labels[0];
+ const anchor={x:label.x+label.width+50,y:label.y+label.height/2};
+ assert.equal(showInteriorCaptionMarker('unlabelled-place',anchor,[label]),true);
+ assert.equal(showInteriorCaptionMarker('unlabelled-place',anchor,[label],{width:150,height:66}),false);
+});
+
 test('caption painting contains the complete glyph height and restores inherited canvas state',()=>{
  const size={width:390,height:668},floor=divine.floors[0],labels=layoutInteriorCaptions(interiorCaptions(divine,floor,0),fitMap(size,floor),size,[],floor);
  const text=[],plates=[],states=[];

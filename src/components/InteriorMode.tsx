@@ -18,7 +18,7 @@ import './SocialInteriors.css';
 import {onPixelArtReady} from '../rendering/pixelArtAssets';
 import {drawInteriorNpc,drawSocialForeground} from '../rendering/drawSocialInterior';
 import {drawIntegratedFloor,drawAtmosphere} from '../rendering/drawInteriorFloor';
-import {drawInteriorCaptions,interiorCaptions,layoutInteriorCaptions} from '../rendering/drawInteriorCaptions';
+import {drawInteriorCaptions,interiorCaptions,layoutInteriorCaptions,showInteriorCaptionMarker} from '../rendering/drawInteriorCaptions';
 
 
 interface RuntimeNpc {data:InteriorNpc;x:number;y:number;angle:number;changeAt:number}
@@ -35,7 +35,7 @@ export default function InteriorMode({map,onExit,onReadEntry}:{map:InteriorMap;o
  inputBlocked.current=paused||areaMapOpen||!!dialogue;
  const [landmarks,setLandmarks]=useState<HTMLImageElement|null>(null),[tiles,setTiles]=useState<HTMLImageElement|null>(null),[special,setSpecial]=useState<HTMLImageElement|null>(null),[legacy,setLegacy]=useState<HTMLImageElement|null>(null),[artRevision,setArtRevision]=useState(0);
  const floor=map.floors[floorIndex]??map.floors[0];
- const resize=useCallback(()=>{const c=canvasRef.current;if(!c)return;const headerHeight=c.parentElement?.querySelector('header')?.getBoundingClientRect().height??76;c.style.top=`${headerHeight}px`;c.style.height=`calc(100% - ${headerHeight}px)`;if(markerViewport.current)markerViewport.current.style.top=`${headerHeight}px`;const d=Math.min(devicePixelRatio||1,2),b=c.getBoundingClientRect();c.width=Math.round(b.width*d);c.height=Math.round(b.height*d)},[]);
+ const resize=useCallback(()=>{const c=canvasRef.current;if(!c)return;const headerHeight=c.parentElement?.querySelector('header')?.getBoundingClientRect().height??76,hudHeight=c.parentElement?.querySelector('.interior-hud')?.getBoundingClientRect().height??0;c.style.top=`${headerHeight}px`;c.style.height=`calc(100% - ${headerHeight+hudHeight}px)`;if(markerViewport.current){markerViewport.current.style.top=`${headerHeight}px`;markerViewport.current.style.bottom=`${hudHeight}px`}const d=Math.min(devicePixelRatio||1,2),b=c.getBoundingClientRect();c.width=Math.round(b.width*d);c.height=Math.round(b.height*d)},[]);
  const openLore=useCallback((zone:InteriorZone)=>{inputBlocked.current=true;movementInput.clear();setDialogue(zone);setNotice(null);onReadEntry?.(interiorLoreEntryId(map,floor,zone))},[map,floor,onReadEntry]);
  const openAreaMap=useCallback(()=>{inputBlocked.current=true;movementInput.clear();setPaused(false);setMapPosition({x:player.current.x,y:player.current.y,floorIndex});setAreaMapOpen(true)},[floorIndex]);
  const closeAreaMap=useCallback(()=>{movementInput.clear();transitionLock.current=performance.now()+350;setAreaMapOpen(false);canvasRef.current?.focus()},[]);
@@ -50,7 +50,7 @@ export default function InteriorMode({map,onExit,onReadEntry}:{map:InteriorMap;o
   return()=>{active=false};
  },[]);
  useEffect(()=>onPixelArtReady(()=>setArtRevision(value=>value+1)),[]);
- useEffect(()=>{const canvas=canvasRef.current;if(!canvas)return;const observer=new ResizeObserver(resize);observer.observe(canvas);const header=canvas.parentElement?.querySelector('header');if(header)observer.observe(header);resize();return()=>observer.disconnect()},[resize]);
+ useEffect(()=>{const canvas=canvasRef.current;if(!canvas)return;const observer=new ResizeObserver(resize);observer.observe(canvas);for(const element of canvas.parentElement?.querySelectorAll('header,.interior-hud')??[])observer.observe(element);resize();return()=>observer.disconnect()},[resize]);
  useEffect(()=>{
   const down=(event:KeyboardEvent)=>{
    if(inputBlocked.current||event.defaultPrevented||event.altKey||event.ctrlKey||event.metaKey||(event.target as HTMLElement).closest('input,textarea,select,[contenteditable="true"]'))return;
@@ -115,19 +115,18 @@ export default function InteriorMode({map,onExit,onReadEntry}:{map:InteriorMap;o
    const nextCaptionKey=[captionView.x,captionView.y,w,h,entered?.id??'',...npcs.current.flatMap(npc=>[Math.round(npc.x),Math.round(npc.y)])].join('/');
    if(nextCaptionKey!==captionKey){
     captionKey=nextCaptionKey;
-    const captionExclusions=[{x:0,y:h-170,width:176,height:170}];
-    if(!dialogue){const promptWidth=w<700?Math.max(0,w-166):Math.min(370,w-190);captionExclusions.push({x:w-promptWidth-32,y:h-220,width:promptWidth+32,height:220})}
-    if(entered&&!dialogue){const [x,y]=interactionAnchor(entered,floor.environment);captionExclusions.push({x:x-captionView.x-75,y:y-captionView.y-30,width:150,height:66})}
-    captions=layoutInteriorCaptions(npcs.current.length?interiorCaptions(map,floor,floorIndex,npcs.current):staticCaptions,captionView,{width:w,height:h},captionExclusions,floor);
+    // HUD is outside the canvas. Names get first choice of space; optional
+    // interaction badges yield afterward, rather than making names disappear.
+    captions=layoutInteriorCaptions(npcs.current.length?interiorCaptions(map,floor,floorIndex,npcs.current):staticCaptions,captionView,{width:w,height:h},[],floor);
    }
    ctx.setTransform(d,0,0,d,0,0);ctx.imageSmoothingEnabled=false;ctx.clearRect(0,0,w,h);ctx.save();ctx.translate(-camera.x,-camera.y);
    if(scene.current)ctx.drawImage(scene.current,0,0);
    if(!floor.environment)drawAtmosphere(ctx,map.theme,floor.width,floor.height,now);
    for(const npc of npcs.current)drawInteriorNpc(ctx,npc.data,npc.x,npc.y,now,false);
    drawSocialForeground(ctx,floor,p.y,'behind');drawPlayer(ctx,p);drawSocialForeground(ctx,floor,p.y,'ahead');
-   if(!dialogue){for(const zone of floor.zones)if(zone.id!==entered?.id&&!captions.some(label=>label.caption.id===zone.id))drawInteractionMarker(ctx,zone,floor.environment);for(const npc of npcs.current){const zone=npcZone(npc);if(zone.id!==entered?.id&&!captions.some(label=>label.caption.id===zone.id))drawInteractionMarker(ctx,zone,floor.environment)}}
+   if(!dialogue){for(const zone of [...floor.zones,...npcs.current.map(npcZone)]){const [x,y]=interactionAnchor(zone,floor.environment);if(zone.id!==entered?.id&&showInteriorCaptionMarker(zone.id,{x:x-camera.x,y:y-camera.y},captions))drawInteractionMarker(ctx,zone,floor.environment)}}
    if(markerSpace.current)markerSpace.current.style.transform=`translate(${-camera.x}px,${-camera.y}px)`;
-   if(markerButton.current&&entered){const [x,y]=interactionAnchor(entered,floor.environment);markerButton.current.style.left=`${x}px`;markerButton.current.style.top=`${y}px`}
+   if(markerButton.current&&entered){const button=markerButton.current,[x,y]=interactionAnchor(entered,floor.environment);button.style.left=`${x}px`;button.style.top=`${y}px`;button.style.visibility=showInteriorCaptionMarker(entered.id,{x:x-camera.x,y:y-camera.y},captions,{width:button.offsetWidth,height:button.offsetHeight})?'visible':'hidden'}
    ctx.restore();drawVignette(ctx,w,h);
    drawInteriorCaptions(ctx,captions);
    frame=requestAnimationFrame(tick);
@@ -141,11 +140,13 @@ export default function InteriorMode({map,onExit,onReadEntry}:{map:InteriorMap;o
   <canvas ref={canvasRef} tabIndex={inputBlocked.current?-1:0} aria-hidden={inputBlocked.current||undefined} aria-label={`${floor.name}. Move with arrow keys or WASD; press E for nearby lore, M for the area map.`}/>
   <div ref={markerViewport} className="world-interaction-viewport" inert={inputBlocked.current}><div ref={markerSpace} className="world-interaction-space">{nearby&&!inputBlocked.current&&<button ref={markerButton} type="button" className="world-interaction-badge" aria-label={`${action}: ${nearby.name}`} onClick={()=>openLore(nearby)}><InteractionIcon kind={kind}/><span>{kind==='talk'?'TALK':'READ'}</span><kbd>E</kbd></button>}</div></div>
   <header inert={paused||areaMapOpen||!!dialogue}><div className="interior-header-actions"><button type="button" onClick={onExit}>← Main map</button><button type="button" onClick={openAreaMap}>Area map <kbd>M</kbd></button></div><div className="interior-floor-title"><small>{map.name}</small><b>{floor.name}</b><span>{floor.subtitle}</span></div><button type="button" className="interior-pause-button" aria-label={`Pause. Floor ${floorIndex+1} of ${map.floors.length}`} onClick={pauseInterior}>Ⅱ<small>{floorIndex+1}/{map.floors.length}</small></button></header>
-  <div className="interior-dpad" inert={paused||areaMapOpen||!!dialogue} aria-label="Touch movement controls">{(['up','left','down','right'] as const).map(direction=>{
+  <div className="interior-hud" inert={paused||areaMapOpen||!!dialogue}>
+  <div className="interior-dpad" aria-label="Touch movement controls">{(['up','left','down','right'] as const).map(direction=>{
    const key=direction==='up'?'w':direction==='left'?'a':direction==='down'?'s':'d';
    return <button type="button" key={direction} className={direction} aria-label={`Move ${direction}`} onPointerDown={event=>{event.preventDefault();event.currentTarget.setPointerCapture(event.pointerId);virtualKey(key,true)}} onPointerUp={()=>virtualKey(key,false)} onPointerCancel={()=>virtualKey(key,false)} onLostPointerCapture={()=>virtualKey(key,false)} onBlur={()=>virtualKey(key,false)} onKeyDown={event=>{if(event.key===' '||event.key==='Enter'){event.preventDefault();virtualKey(key,true)}}} onKeyUp={event=>{if(event.key===' '||event.key==='Enter'){event.preventDefault();virtualKey(key,false)}}} onClick={event=>{if(event.detail===0&&!inputBlocked.current&&!document.hidden)movementInput.nudge(key)}}>{direction==='up'?'▲':direction==='left'?'◀':direction==='down'?'▼':'▶'}</button>;
   })}</div>
   {prompt&&!dialogue&&!areaMapOpen&&!paused&&<InteractionPrompt title={prompt.name} kind={kind} action={action} eyebrow={nearby?kind==='talk'?'TRAVELLER NEARBY':floor.environment==='library'?'READING SHELF':'A PLACE TO EXPLORE':notice?'NEW AREA ENTERED':'LAST DISCOVERY'} remembered={!nearby&&!notice} onActivate={()=>openLore(prompt)}/>}
+  </div>
   {dialogue&&<LoreDialog title={dialogue.name} eyebrow={dialogue.id.startsWith('npc-')?'TRAVELLER SAYS':'PLACE LORE'} onClose={()=>setDialogue(null)}>
    <p className="copy">◆ {dialogue.copy}</p><LoreLinks links={links} title={floor.environment==='library'?'CHOOSE A VOLUME':'FIELD NOTES'}/>
   </LoreDialog>}

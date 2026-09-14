@@ -4,8 +4,8 @@ An 8-bit browser adventure through the imaginative landscape of fire kasina prac
 
 [Play the published game](https://thepheephee.github.io/FireKasinaTheGame/)
 
-This branch contains the **unpublished retreat review**. The published game above
-does not include these changes. See [review results](docs/review-results.md) for
+This version includes the retreat review and interior label-layout correction.
+See [review results](docs/review-results.md) for
 the implemented improvements, recovered constraints, verification and limitations.
 
 ## Playing

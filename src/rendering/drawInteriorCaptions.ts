@@ -64,8 +64,8 @@ export function layoutInteriorCaptions(captions:InteriorCaption[],view:View,size
 }
 
 /** A spare lore badge must never cover the caption of the next landmark. */
-export function showInteriorCaptionMarker(id:string,anchor:{x:number;y:number},labels:InteriorCaptionBox[]):boolean{
- const marker={x:anchor.x-22,y:anchor.y-22,width:44,height:44};
+export function showInteriorCaptionMarker(id:string,anchor:{x:number;y:number},labels:InteriorCaptionBox[],size:ScreenSize={width:44,height:44}):boolean{
+ const marker={x:anchor.x-size.width/2,y:anchor.y-size.height/2,width:size.width,height:size.height};
  return !labels.some(label=>label.caption.id===id||overlaps(label,marker,2));
 }
 

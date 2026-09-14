@@ -1,7 +1,9 @@
 # Retreat review — constraint ledger
 
 Review started 13 September 2026 from `c46947b`, on `codex/retreat-review`.
-The initial worktree was clean. This branch must **not be merged or published**.
+The initial worktree was clean. The original review brief prohibited merging or
+publishing. The subsequent user request explicitly superseded that restriction:
+fix the interior name/overlay collisions and push **all updates to main**.
 
 ## Sources and authority
 

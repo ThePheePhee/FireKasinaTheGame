@@ -135,5 +135,22 @@ and design trade-offs, not new restrictions on future development.
 
 From the repository, run `npm run dev -- --host 127.0.0.1 --port 5180` and open
 `http://127.0.0.1:5180/FireKasinaTheGame/`. Use `?qa=journey` for a disposable
-title-to-world journey or `?qa=map` for the full atlas. This is local only; the
-published GitHub Pages version is unchanged.
+title-to-world journey or `?qa=map` for the full atlas. QA entry points remain
+local-only and are excluded from the production build.
+
+## Follow-up: interior names and publication
+
+The user subsequently authorized publishing all review updates to main. The
+original no-publication statements above describe the completed review stage,
+not the follow-up authorization.
+
+Interior walking previously reserved a hard-coded 220px-tall information-panel
+rectangle inside the canvas. It could silently suppress a landmark name even
+when the panel itself was smaller. Controls now occupy a measured bottom dock
+outside the landscape viewport. Names are placed first; spare interaction badges
+yield to captions using their actual dimensions. The nearby-action card and E
+remain available when a redundant floating Read badge is hidden.
+
+Regression coverage reproduces the missing Arising and Passing Away sign and
+checks the corrected desktop, portrait-phone and landscape-phone viewports,
+plus wide interaction-badge collisions. No floor topology or lore was changed.
