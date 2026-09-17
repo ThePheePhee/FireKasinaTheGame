@@ -1,6 +1,6 @@
 import type {InteriorFloor,InteriorMap,InteriorNpc} from '../data/interiorMaps';
 import type {View} from '../engine/camera';
-import {downStairs,upStairs} from '../engine/interiorNavigation';
+import {downStairs,upStairs,STAIR_ART_SIZE} from '../engine/interiorNavigation';
 import {worldToScreen,type MapBounds,type ScreenSize} from '../engine/mapViewport';
 
 export interface InteriorCaption {id:string;name:string;x:number;y:number;kind:'place'|'traveller'|'stairs'|'exit';art?:CaptionExclusion}
@@ -16,8 +16,8 @@ export function interiorCaptions(map:InteriorMap,floor:InteriorFloor,floorIndex:
  });
  for(const npc of npcs??(floor.npcs??[]).map(data=>({data,x:data.x,y:data.y})))result.push({id:`npc-${npc.data.id}`,name:npc.data.name,x:npc.x,y:npc.y+44,kind:'traveller',art:{x:npc.x-36,y:npc.y-49,width:72,height:76}});
  if(floorIndex===0)result.push({id:'exit',name:'MAIN MAP',x:floor.spawn[0],y:floor.height-35,kind:'exit'});
- else{const [x,y]=downStairs(floor);result.push({id:'stairs-down',name:'▼ PREVIOUS FLOOR',x,y:y+80,kind:'stairs',art:{x:x-63,y:y-63,width:126,height:126}})}
- if(floorIndex<map.floors.length-1){const [x,y]=upStairs(floor);result.push({id:'stairs-up',name:'▲ NEXT FLOOR',x,y:y+80,kind:'stairs',art:{x:x-63,y:y-63,width:126,height:126}})}
+ else{const [x,y]=downStairs(floor);result.push({id:'stairs-down',name:'▼ PREVIOUS FLOOR',x,y,kind:'stairs',art:{x:x-STAIR_ART_SIZE/2,y:y-STAIR_ART_SIZE/2,width:STAIR_ART_SIZE,height:STAIR_ART_SIZE}})}
+ if(floorIndex<map.floors.length-1){const [x,y]=upStairs(floor);result.push({id:'stairs-up',name:'▲ NEXT FLOOR',x,y,kind:'stairs',art:{x:x-STAIR_ART_SIZE/2,y:y-STAIR_ART_SIZE/2,width:STAIR_ART_SIZE,height:STAIR_ART_SIZE}})}
  return result;
 }
 
@@ -40,8 +40,9 @@ export function layoutInteriorCaptions(captions:InteriorCaption[],view:View,size
  const limits={left:Math.max(4,start.x+4),top:Math.max(4,start.y+4),right:Math.min(size.width-4,end.x-4),bottom:Math.min(size.height-4,end.y-4)};
  const maximumDrift=compact&&view.scale<.6?40:200;
  const anchors=captions.map(caption=>({caption,anchor:worldToScreen(view,caption.x,caption.y)}));
- // The approached/located place must not lose space to an unrelated neighbour.
- if(focusId)anchors.sort((a,b)=>Number(b.caption.id===focusId)-Number(a.caption.id===focusId));
+ // Protect the approached place first, then reserve signs at the actual stairs.
+ const priority=(caption:InteriorCaption)=>caption.id===focusId?2:caption.kind==='stairs'?1:0;
+ anchors.sort((a,b)=>priority(b.caption)-priority(a.caption));
  const art=captions.flatMap(caption=>{if(!caption.art)return[];const point=worldToScreen(view,caption.art.x,caption.art.y);return[{x:point.x,y:point.y,width:caption.art.width*view.scale,height:caption.art.height*view.scale}]});
  const placed:InteriorCaptionBox[]=[];
  for(const {caption,anchor} of anchors){
@@ -49,8 +50,25 @@ export function layoutInteriorCaptions(captions:InteriorCaption[],view:View,size
   if((anchor.x<0||anchor.x>size.width||anchor.y<0||anchor.y>size.height)&&(!visibleArt||!overlaps(visibleArt,{x:0,y:0,...size},0)))continue;
   const neighbour=anchors.reduce((distance,other)=>other.caption.id!==caption.id&&Math.abs(other.anchor.y-anchor.y)<lineHeight*3?Math.min(distance,Math.abs(other.anchor.x-anchor.x)||Infinity):distance,Infinity);
   const availableWidth=Math.max(90,Math.min(compact?150:244,neighbour-8,2*Math.min(anchor.x-limits.left,limits.right-anchor.x)-8,limits.right-limits.left));
-  const lines=wrapName(caption.name,Math.max(14,Math.floor((availableWidth-padding*2)/charWidth)));
-  const width=Math.max(compact?44:0,Math.ceil(Math.max(...lines.map(line=>line.length))*charWidth)+padding*2),height=Math.max(compact?44:0,lines.length*lineHeight+8);
+  const lines=wrapName(caption.name,caption.kind==='stairs'?(compact?11:24):Math.max(14,Math.floor((availableWidth-padding*2)/charWidth)));
+  const width=Math.max(compact?44:0,Math.ceil(Math.max(...lines.map(line=>line.length))*charWidth)+(caption.kind==='stairs'?8:padding*2)),height=Math.max(compact?44:0,lines.length*lineHeight+8);
+  if(caption.kind==='stairs'&&visibleArt){
+   // Stair signs are attached plaques, not free-floating landmark captions.
+   // Their only valid homes touch one of the four sides of their own stairs.
+   const a=visibleArt,cx=a.x+a.width/2,cy=a.y+a.height/2,gap=8;
+   const slots=[
+    {x:a.x-gap-width,y:cy-height/2,anchor:{x:a.x,y:cy}},
+    {x:a.x+a.width+gap,y:cy-height/2,anchor:{x:a.x+a.width,y:cy}},
+    {x:cx-width/2,y:a.y-gap-height,anchor:{x:cx,y:a.y}},
+    {x:cx-width/2,y:a.y+a.height+gap,anchor:{x:cx,y:a.y+a.height}},
+   ];
+   for(const slot of slots){
+    const candidate={caption,...slot,x:Math.round(slot.x),y:Math.round(slot.y),width,height,lines,fontSize,lineHeight};
+    if(candidate.x<limits.left||candidate.y<limits.top||candidate.x+width>limits.right||candidate.y+height>limits.bottom||reserved.some(box=>overlaps(candidate,box))||art.some(box=>overlaps(candidate,box,2))||placed.some(box=>overlaps(candidate,box)))continue;
+    placed.push(candidate);break;
+   }
+   continue;
+  }
   let best:InteriorCaptionBox|undefined,bestCost=Infinity;
   for(const dy of [0,4,-4,8,-8,12,-12,18,-18,24,-24,30,-30,36,-36,48,-48,60,-60,72,-72,90,-90,108,-108,140,-140,170,-170,200,-200])for(const dx of [0,8,-8,16,-16,24,-24,40,-40,64,-64,80,-80,96,-96,112,-112,140,-140,170,-170,200,-200]){
    const x=Math.round(Math.max(limits.left,Math.min(limits.right-width,anchor.x-width/2+dx))),y=Math.round(Math.max(limits.top,Math.min(limits.bottom-height,anchor.y-height/2+dy)));

@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {interiorMaps} from '../src/data/interiorMaps.ts';
 import {fitMap,constrainMap,worldToScreen} from '../src/engine/mapViewport.ts';
 import {playerCamera} from '../src/engine/camera.ts';
+import {upStairs,downStairs,interiorArrival} from '../src/engine/interiorNavigation.ts';
 import {interiorCaptions,layoutInteriorCaptions,drawInteriorCaptions,showInteriorCaptionMarker} from '../src/rendering/drawInteriorCaptions.ts';
 
 const overlap=(a,b)=>a.x<b.x+b.width&&a.x+a.width>b.x&&a.y<b.y+b.height&&a.y+a.height>b.y;
@@ -48,7 +49,7 @@ test('captions stay within the rendered floor, avoid artwork and each other, and
    assert.ok(!art.some(box=>overlap(label,box)),`${label.caption.name} covers landmark artwork`);
    assert.ok(!reserved.some(box=>overlap(label,box)),`${label.caption.name} is hidden under map controls`);
    assert.ok(!labels.slice(labelIndex+1).some(box=>overlap(label,box)),`${label.caption.name} overlaps another caption`);
-   if(size.width<700){assert.ok(label.height>=44&&label.width>=44,`${label.caption.name} needs a full-size touch target`);assert.ok(Math.hypot(label.x+label.width/2-label.anchor.x,label.y+label.height/2-label.anchor.y)<=40)}
+   if(size.width<700){assert.ok(label.height>=44&&label.width>=44,`${label.caption.name} needs a full-size touch target`);if(label.caption.kind!=='stairs')assert.ok(Math.hypot(label.x+label.width/2-label.anchor.x,label.y+label.height/2-label.anchor.y)<=40)}
   }
  }
 });
@@ -97,6 +98,38 @@ test('Arising and Passing Away remains named beside the player with the HUD outs
   assert.equal(label.lines.join(' '),source.find(caption=>caption.id==='arising').name);
   assert.equal(showInteriorCaptionMarker('arising',label.anchor,labels,{width:150,height:66}),false);
  }
+});
+
+test('all staircase signs stay attached to their own landing in walking and atlas views',()=>{
+ let count=0;
+ for(const map of interiorMaps)for(const [index,floor] of map.floors.entries()){
+  const source=interiorCaptions(map,floor,index);
+  for(const stair of source.filter(caption=>caption.kind==='stairs')){
+   count++;
+   const point=stair.id==='stairs-up'?upStairs(floor):downStairs(floor);
+   assert.deepEqual([stair.x,stair.y],point,'sign and transition must use the same staircase centre');
+   for(const size of [{width:1280,height:526},{width:390,height:526},{width:320,height:360},{width:844,height:182}]){
+    const walking=playerCamera(stair.x,stair.y+65,size.width,size.height,floor.width,floor.height);
+    for(const view of [walking,fitMap(size,floor)])for(const focusId of [undefined,stair.id==='stairs-up'?floor.zones.at(-1).id:floor.zones[0].id]){
+     const labels=layoutInteriorCaptions(source,view,size,[],floor,focusId),label=labels.find(label=>label.caption.id===stair.id);
+     if(view===walking)assert.ok(label,`${map.name}/${floor.name}/${stair.name} missing at ${size.width}`);
+     if(!label)continue; // Dense whole-floor atlases reveal more signs on zoom.
+     const art={...worldToScreen(view,stair.art.x,stair.art.y),width:stair.art.width*view.scale,height:stair.art.height*view.scale};
+     const x=label.x+label.width/2,y=label.y+label.height/2;
+     const side=Math.abs(y-(art.y+art.height/2))<=.51&&(Math.abs(art.x-label.x-label.width-8)<=.51||Math.abs(label.x-art.x-art.width-8)<=.51);
+     const vertical=Math.abs(x-(art.x+art.width/2))<=.51&&(Math.abs(art.y-label.y-label.height-8)<=.51||Math.abs(label.y-art.y-art.height-8)<=.51);
+     assert.ok(side||vertical,`${map.name}/${stair.name} drifted away from its staircase`);
+     assert.equal(label.lines.join(' '),stair.name);
+    }
+   }
+   for(const other of source)if(other.art&&other!==stair)assert.ok(!overlap(stair.art,other.art),`${map.name} stairs overlap ${other.name}`);
+   assert.ok(stair.art.x>=0&&stair.art.y>=0&&stair.art.x+stair.art.width<=floor.width&&stair.art.y+stair.art.height<=floor.height);
+   for(const obstacle of floor.obstacles)assert.ok(!overlap(stair.art,{x:obstacle.x,y:obstacle.y,width:obstacle.w,height:obstacle.h}),'stairs must stay out of solid furniture');
+   const arrival=interiorArrival(floor,stair.id==='stairs-down'?'below':'above');
+   assert.ok(Math.hypot(arrival[0]-stair.x,arrival[1]-stair.y)>=48,'arrival immediately triggers the same stairs');
+  }
+ }
+ assert.equal(count,10,'keep the existing ten stair connections');
 });
 
 test('every approached interior place retains its full name across desktop and phone viewports',()=>{

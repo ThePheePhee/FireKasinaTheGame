@@ -40,3 +40,25 @@ Local-only review URL for the reported case:
 `?qa=interior&area=tower&floor=1&near=arising`. The floor index is zero-based;
 normal gameplay still starts on the first floor and uses stairs. QA never writes
 the player's saved journey and is unavailable in production.
+
+## Staircase-sign follow-up
+
+Stair signs now anchor to the staircase itself, rather than a point 80 world
+pixels below it. They use four close-fitting plaque positions (left, right,
+above, below), with an eight-screen-pixel gap. They never use the landmark
+label's wide displacement search. Narrow screens wrap the full wording rather
+than shrinking the lettering. Nearby lore keeps its priority without displacing
+the staircase plaque toward a different landmark.
+
+The old fixed 145-pixel stair offset could overlap larger landmark artwork,
+especially the Fourth Jhāna. The shared navigation helper now clears each
+landmark's actual footprint and uses a side landing when the preferred landing
+meets a wall. The floor painter, captions, walking triggers, arrival positions,
+and connecting paths all consume those same coordinates. Floor order and all
+ten existing connections are unchanged.
+
+Regression checks cover every connection in walking and atlas views, with and
+without an active nearby landmark, at 1280-, 844-, 390-, and 320-pixel widths.
+They verify tight sign attachment, unobstructed landings, and arrival outside
+the immediate return trigger. Divination Station was also inspected in the
+desktop and phone-sized atlas.

@@ -1,5 +1,5 @@
 import type {InteriorFloor,InteriorMap} from '../data/interiorMaps';
-import {downStairs as downPoint,upStairs as upPoint} from '../engine/interiorNavigation';
+import {downStairs as downPoint,upStairs as upPoint,STAIR_ART_SIZE} from '../engine/interiorNavigation';
 import {getAtlas} from './pixelArtAssets';
 import {drawSocialInterior} from './drawSocialInterior';
 
@@ -33,5 +33,5 @@ export function drawIntegratedFloor(ctx:CanvasRenderingContext2D,map:InteriorMap
  if(floorIndex===0){if(recallTiles)recallCell(ctx,recallTiles,3,floor.spawn[0],floor.height-70,145);drawExit(ctx,floor.spawn[0],floor.height-35,colors[3])}else drawStairs(ctx,tiles,down[0],down[1],false,colors[3],map.theme);if(floorIndex<map.floors.length-1)drawStairs(ctx,tiles,up[0],up[1],true,colors[3],map.theme);
  ctx.strokeStyle=`${colors[2]}88`;ctx.lineWidth=6;ctx.strokeRect(22,22,floor.width-44,floor.height-44);ctx.strokeStyle=`${colors[3]}66`;ctx.lineWidth=2;ctx.strokeRect(31,31,floor.width-62,floor.height-62);
 }
-function drawStairs(ctx:CanvasRenderingContext2D,tiles:HTMLImageElement|null,x:number,y:number,up:boolean,color:string,theme:InteriorMap['theme']){if(tiles){const column=theme==='divine'?4:theme==='formless'?5:up?0:1;atlasCell(ctx,tiles,column,3,x,y,126)}else{ctx.fillStyle='#17141d';ctx.fillRect(x-48,y-48,96,96);for(let i=0;i<6;i++){ctx.fillStyle=i%2?color:'#625b62';ctx.fillRect(x-34+i*5,y-31+i*10,68-i*10,7)}}}
+function drawStairs(ctx:CanvasRenderingContext2D,tiles:HTMLImageElement|null,x:number,y:number,up:boolean,color:string,theme:InteriorMap['theme']){if(tiles){const column=theme==='divine'?4:theme==='formless'?5:up?0:1;atlasCell(ctx,tiles,column,3,x,y,STAIR_ART_SIZE)}else{ctx.fillStyle='#17141d';ctx.fillRect(x-48,y-48,96,96);for(let i=0;i<6;i++){ctx.fillStyle=i%2?color:'#625b62';ctx.fillRect(x-34+i*5,y-31+i*10,68-i*10,7)}}}
 function drawExit(ctx:CanvasRenderingContext2D,x:number,y:number,color:string){ctx.fillStyle='#121019';ctx.fillRect(x-74,y-36,148,72);ctx.strokeStyle=color;ctx.lineWidth=5;ctx.strokeRect(x-74,y-36,148,72);}
