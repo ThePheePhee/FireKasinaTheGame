@@ -85,14 +85,50 @@ test('floating interaction badges cannot duplicate or cover a readable caption',
 test('Arising and Passing Away remains named beside the player with the HUD outside the landscape',()=>{
  const map=interiorMaps.find(map=>map.regionId==='tower'),floor=map.floors[1],source=interiorCaptions(map,floor,1);
  const oldSize={width:1280,height:700},oldView=playerCamera(1340,850,oldSize.width,oldSize.height,floor.width,floor.height);
- // Reproduce the oversized information-panel exclusion that erased this sign.
- assert.equal(layoutInteriorCaptions(source,oldView,oldSize,[{x:878,y:480,width:402,height:220}],floor).some(label=>label.caption.id==='arising'),false);
+ // The original oversized exclusion used to erase this sign; extended placement
+ // can now recover it even before the controls are moved outside the viewport.
+ const legacyPanel={x:878,y:480,width:402,height:220};
+ const recovered=layoutInteriorCaptions(source,oldView,oldSize,[legacyPanel],floor).find(label=>label.caption.id==='arising');
+ assert.ok(recovered);assert.ok(!overlap(recovered,legacyPanel));
  for(const size of [{width:1280,height:526},{width:390,height:526},{width:844,height:210}]){
   const view=playerCamera(1340,850,size.width,size.height,floor.width,floor.height);
   const labels=layoutInteriorCaptions(source,view,size,[],floor),label=labels.find(label=>label.caption.id==='arising');
   assert.ok(label,`Arising name missing in ${size.width}×${size.height} walking viewport`);
   assert.equal(label.lines.join(' '),source.find(caption=>caption.id==='arising').name);
   assert.equal(showInteriorCaptionMarker('arising',label.anchor,labels,{width:150,height:66}),false);
+ }
+});
+
+test('every approached interior place retains its full name across desktop and phone viewports',()=>{
+ for(const map of interiorMaps)for(const [floorIndex,floor] of map.floors.entries()){
+  const source=interiorCaptions(map,floor,floorIndex);
+  for(const size of [{width:1280,height:526},{width:390,height:526},{width:844,height:210}])for(const zone of floor.zones){
+   const view=playerCamera(zone.x,zone.y+zone.h*.55,size.width,size.height,floor.width,floor.height);
+   const labels=layoutInteriorCaptions(source,view,size,[],floor,zone.id);
+   const label=labels.find(item=>item.caption.id===zone.id);
+   assert.ok(label,`${map.name}/${floor.name}/${zone.name} missing at ${size.width}×${size.height}`);
+   assert.equal(label.lines.join(' '),zone.name);
+   assert.ok(label.x>=0&&label.y>=0&&label.x+label.width<=size.width&&label.y+label.height<=size.height);
+   assert.ok(!labels.some(other=>other!==label&&overlap(other,label)));
+   for(const caption of source)if(caption.art){const point=worldToScreen(view,caption.art.x,caption.art.y);assert.ok(!overlap(label,{...point,width:caption.art.width*view.scale,height:caption.art.height*view.scale}),`${zone.name} obscures art`)}
+  }
+ }
+});
+
+test('visible landmark keeps its name when the original sign anchor is below the viewport',()=>{
+ const caption={id:'edge',name:'The Edge of Seeing',x:200,y:215,kind:'place',art:{x:145,y:100,width:110,height:90}};
+ const label=layoutInteriorCaptions([caption],{x:0,y:0,scale:1},{width:400,height:200},[],undefined,'edge')[0];
+ assert.ok(label);assert.equal(label.lines.join(' '),caption.name);
+ assert.ok(label.y+label.height<=200);assert.ok(!overlap(label,caption.art));
+});
+
+test('traveller names also survive nearby furniture and small walking viewports',()=>{
+ for(const map of interiorMaps)for(const [index,floor] of map.floors.entries())for(const npc of floor.npcs??[]){
+  for(const size of [{width:1280,height:526},{width:390,height:526},{width:844,height:182}]){
+   const source=interiorCaptions(map,floor,index),view=playerCamera(npc.x,npc.y+90,size.width,size.height,floor.width,floor.height);
+   const labels=layoutInteriorCaptions(source,view,size,[],floor,`npc-${npc.id}`);
+   assert.equal(labels.find(label=>label.caption.id===`npc-${npc.id}`)?.lines.join(' '),npc.name);
+  }
  }
 });
 

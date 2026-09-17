@@ -33,28 +33,36 @@ function wrapName(name:string,maxCharacters:number):string[]{
 const overlaps=(a:CaptionExclusion,b:CaptionExclusion,padding=3)=>a.x<b.x+b.width+padding&&a.x+a.width+padding>b.x&&a.y<b.y+b.height+padding&&a.y+a.height+padding>b.y;
 
 /** Screen-pixel typography never shrinks with the floor atlas or inherits a world painter's baseline. */
-export function layoutInteriorCaptions(captions:InteriorCaption[],view:View,size:ScreenSize,reserved:CaptionExclusion[]=[],bounds?:MapBounds):InteriorCaptionBox[]{
+export function layoutInteriorCaptions(captions:InteriorCaption[],view:View,size:ScreenSize,reserved:CaptionExclusion[]=[],bounds?:MapBounds,focusId?:string):InteriorCaptionBox[]{
  if(size.width<80||size.height<80||!Number.isFinite(view.scale)||view.scale<=0)return[];
  const compact=size.width<700,fontSize=compact?12:13,lineHeight=fontSize+5,charWidth=fontSize*.63,padding=6;
  const start=bounds?worldToScreen(view,0,0):{x:0,y:0},end=bounds?worldToScreen(view,bounds.width,bounds.height):{x:size.width,y:size.height};
  const limits={left:Math.max(4,start.x+4),top:Math.max(4,start.y+4),right:Math.min(size.width-4,end.x-4),bottom:Math.min(size.height-4,end.y-4)};
- const maximumDrift=compact&&view.scale<.6?40:112;
+ const maximumDrift=compact&&view.scale<.6?40:200;
  const anchors=captions.map(caption=>({caption,anchor:worldToScreen(view,caption.x,caption.y)}));
+ // The approached/located place must not lose space to an unrelated neighbour.
+ if(focusId)anchors.sort((a,b)=>Number(b.caption.id===focusId)-Number(a.caption.id===focusId));
  const art=captions.flatMap(caption=>{if(!caption.art)return[];const point=worldToScreen(view,caption.art.x,caption.art.y);return[{x:point.x,y:point.y,width:caption.art.width*view.scale,height:caption.art.height*view.scale}]});
  const placed:InteriorCaptionBox[]=[];
  for(const {caption,anchor} of anchors){
-  if(anchor.x<0||anchor.x>size.width||anchor.y<0||anchor.y>size.height)continue;
+  const visibleArt=caption.art&&{...worldToScreen(view,caption.art.x,caption.art.y),width:caption.art.width*view.scale,height:caption.art.height*view.scale};
+  if((anchor.x<0||anchor.x>size.width||anchor.y<0||anchor.y>size.height)&&(!visibleArt||!overlaps(visibleArt,{x:0,y:0,...size},0)))continue;
   const neighbour=anchors.reduce((distance,other)=>other.caption.id!==caption.id&&Math.abs(other.anchor.y-anchor.y)<lineHeight*3?Math.min(distance,Math.abs(other.anchor.x-anchor.x)||Infinity):distance,Infinity);
   const availableWidth=Math.max(90,Math.min(compact?150:244,neighbour-8,2*Math.min(anchor.x-limits.left,limits.right-anchor.x)-8,limits.right-limits.left));
   const lines=wrapName(caption.name,Math.max(14,Math.floor((availableWidth-padding*2)/charWidth)));
   const width=Math.max(compact?44:0,Math.ceil(Math.max(...lines.map(line=>line.length))*charWidth)+padding*2),height=Math.max(compact?44:0,lines.length*lineHeight+8);
   let best:InteriorCaptionBox|undefined,bestCost=Infinity;
-  for(const dy of [0,4,-4,8,-8,12,-12,18,-18,24,-24,30,-30,36,-36,48,-48,60,-60,72,-72,90,-90,108,-108])for(const dx of [0,8,-8,16,-16,24,-24,40,-40,64,-64,80,-80,96,-96,112,-112]){
+  for(const dy of [0,4,-4,8,-8,12,-12,18,-18,24,-24,30,-30,36,-36,48,-48,60,-60,72,-72,90,-90,108,-108,140,-140,170,-170,200,-200])for(const dx of [0,8,-8,16,-16,24,-24,40,-40,64,-64,80,-80,96,-96,112,-112,140,-140,170,-170,200,-200]){
    const x=Math.round(Math.max(limits.left,Math.min(limits.right-width,anchor.x-width/2+dx))),y=Math.round(Math.max(limits.top,Math.min(limits.bottom-height,anchor.y-height/2+dy)));
    const candidate={caption,anchor,x,y,width,height,lines,fontSize,lineHeight};
    const distance=Math.hypot(x+width/2-anchor.x,y+height/2-anchor.y);
    if(x<limits.left-.5||y<limits.top-.5||x+width>limits.right+.5||y+height>limits.bottom+.5||distance>maximumDrift||reserved.some(box=>overlaps(candidate,box))||art.some(box=>overlaps(candidate,box,2))||placed.some(box=>overlaps(candidate,box)))continue;
-   const cost=distance+Math.abs(dx)*.3+Math.max(0,anchor.y-y-height/2)*.5;
+   const stemX=Math.max(x,Math.min(x+width,anchor.x)),stemY=Math.max(y,Math.min(y+height,anchor.y));
+   const leader=[{x:Math.min(anchor.x,stemX),y:anchor.y,width:Math.abs(stemX-anchor.x),height:1},{x:stemX,y:Math.min(anchor.y,stemY),width:1,height:Math.abs(stemY-anchor.y)}];
+   // Prefer a short side sign over a plaque below a staircase whose leader
+   // would misleadingly run through that staircase's artwork.
+   const crossing=art.some(box=>leader.some(segment=>segment.width>0&&segment.height>0&&overlaps(segment,box,0)));
+   const cost=distance+Math.abs(dx)*.3+Math.max(0,anchor.y-y-height/2)*.5+(crossing?500:0);
    if(cost<bestCost){best=candidate;bestCost=cost}
   }
   // In dense overview floors, zooming reveals a caption that cannot fit without covering another.

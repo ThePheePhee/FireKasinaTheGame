@@ -24,18 +24,18 @@ import {drawInteriorCaptions,interiorCaptions,layoutInteriorCaptions,showInterio
 interface RuntimeNpc {data:InteriorNpc;x:number;y:number;angle:number;changeAt:number}
 const npcZone=(runtime:RuntimeNpc):InteriorZone=>({id:`npc-${runtime.data.id}`,name:runtime.data.name,copy:runtime.data.copy,x:runtime.x,y:runtime.y,w:90,h:90,shape:'circle',art:[0,0],references:runtime.data.references});
 
-export default function InteriorMode({map,onExit,onReadEntry}:{map:InteriorMap;onExit:()=>void;onReadEntry?:(id:string)=>void}){
+export default function InteriorMode({map,onExit,onReadEntry,initialFloorIndex=0}:{map:InteriorMap;onExit:()=>void;onReadEntry?:(id:string)=>void;initialFloorIndex?:number}){
  const [movementInput]=useState(createMovementInput);
  const canvasRef=useRef<HTMLCanvasElement>(null),scene=useRef<HTMLCanvasElement|null>(null),keys=useRef(movementInput.held),markerViewport=useRef<HTMLDivElement>(null),markerSpace=useRef<HTMLDivElement>(null),markerButton=useRef<HTMLButtonElement>(null);
  const player=useRef<Player>({x:map.floors[0].spawn[0],y:map.floors[0].spawn[1],direction:'up',moving:false,step:0});
  const activeZone=useRef<string|null>(null),transitionLock=useRef(0),npcs=useRef<RuntimeNpc[]>([]),arrival=useRef<'outside'|'below'|'above'>('outside');
- const [floorIndex,setFloorIndex]=useState(0),[dialogue,setDialogue]=useState<InteriorZone|null>(null),[notice,setNotice]=useState<InteriorZone|null>(()=>interiorEntry(map,map.floors[0])),[lastDiscovery,setLastDiscovery]=useState<InteriorZone|null>(null),[nearby,setNearby]=useState<InteriorZone|null>(null);
+ const [floorIndex,setFloorIndex]=useState(()=>Math.max(0,Math.min(map.floors.length-1,initialFloorIndex))),[dialogue,setDialogue]=useState<InteriorZone|null>(null),[notice,setNotice]=useState<InteriorZone|null>(null),[lastDiscovery,setLastDiscovery]=useState<InteriorZone|null>(null),[nearby,setNearby]=useState<InteriorZone|null>(null);
  const [areaMapOpen,setAreaMapOpen]=useState(false),[mapPosition,setMapPosition]=useState<{x:number;y:number;floorIndex:number}|undefined>();
  const [paused,setPaused]=useState(false),inputBlocked=useRef(false);
  inputBlocked.current=paused||areaMapOpen||!!dialogue;
  const [landmarks,setLandmarks]=useState<HTMLImageElement|null>(null),[tiles,setTiles]=useState<HTMLImageElement|null>(null),[special,setSpecial]=useState<HTMLImageElement|null>(null),[legacy,setLegacy]=useState<HTMLImageElement|null>(null),[artRevision,setArtRevision]=useState(0);
  const floor=map.floors[floorIndex]??map.floors[0];
- const resize=useCallback(()=>{const c=canvasRef.current;if(!c)return;const headerHeight=c.parentElement?.querySelector('header')?.getBoundingClientRect().height??76,hudHeight=c.parentElement?.querySelector('.interior-hud')?.getBoundingClientRect().height??0;c.style.top=`${headerHeight}px`;c.style.height=`calc(100% - ${headerHeight+hudHeight}px)`;if(markerViewport.current){markerViewport.current.style.top=`${headerHeight}px`;markerViewport.current.style.bottom=`${hudHeight}px`}const d=Math.min(devicePixelRatio||1,2),b=c.getBoundingClientRect();c.width=Math.round(b.width*d);c.height=Math.round(b.height*d)},[]);
+ const resize=useCallback(()=>{const c=canvasRef.current;if(!c)return;const d=Math.min(devicePixelRatio||1,2),b=c.getBoundingClientRect();const width=Math.round(b.width*d),height=Math.round(b.height*d);if(c.width!==width)c.width=width;if(c.height!==height)c.height=height},[]);
  const openLore=useCallback((zone:InteriorZone)=>{inputBlocked.current=true;movementInput.clear();setDialogue(zone);setNotice(null);onReadEntry?.(interiorLoreEntryId(map,floor,zone))},[map,floor,onReadEntry]);
  const openAreaMap=useCallback(()=>{inputBlocked.current=true;movementInput.clear();setPaused(false);setMapPosition({x:player.current.x,y:player.current.y,floorIndex});setAreaMapOpen(true)},[floorIndex]);
  const closeAreaMap=useCallback(()=>{movementInput.clear();transitionLock.current=performance.now()+350;setAreaMapOpen(false);canvasRef.current?.focus()},[]);
@@ -50,7 +50,7 @@ export default function InteriorMode({map,onExit,onReadEntry}:{map:InteriorMap;o
   return()=>{active=false};
  },[]);
  useEffect(()=>onPixelArtReady(()=>setArtRevision(value=>value+1)),[]);
- useEffect(()=>{const canvas=canvasRef.current;if(!canvas)return;const observer=new ResizeObserver(resize);observer.observe(canvas);for(const element of canvas.parentElement?.querySelectorAll('header,.interior-hud')??[])observer.observe(element);resize();return()=>observer.disconnect()},[resize]);
+ useEffect(()=>{const canvas=canvasRef.current;if(!canvas)return;const observer=new ResizeObserver(resize);observer.observe(canvas);resize();return()=>observer.disconnect()},[resize]);
  useEffect(()=>{
   const down=(event:KeyboardEvent)=>{
    if(inputBlocked.current||event.defaultPrevented||event.altKey||event.ctrlKey||event.metaKey||(event.target as HTMLElement).closest('input,textarea,select,[contenteditable="true"]'))return;
@@ -117,7 +117,7 @@ export default function InteriorMode({map,onExit,onReadEntry}:{map:InteriorMap;o
     captionKey=nextCaptionKey;
     // HUD is outside the canvas. Names get first choice of space; optional
     // interaction badges yield afterward, rather than making names disappear.
-    captions=layoutInteriorCaptions(npcs.current.length?interiorCaptions(map,floor,floorIndex,npcs.current):staticCaptions,captionView,{width:w,height:h},[],floor);
+    captions=layoutInteriorCaptions(npcs.current.length?interiorCaptions(map,floor,floorIndex,npcs.current):staticCaptions,captionView,{width:w,height:h},[],floor,entered?.id);
    }
    ctx.setTransform(d,0,0,d,0,0);ctx.imageSmoothingEnabled=false;ctx.clearRect(0,0,w,h);ctx.save();ctx.translate(-camera.x,-camera.y);
    if(scene.current)ctx.drawImage(scene.current,0,0);
@@ -137,8 +137,10 @@ export default function InteriorMode({map,onExit,onReadEntry}:{map:InteriorMap;o
  const links=dialogue?.references??(dialogue?.reference?[dialogue.reference]:[]);
  const prompt=nearby??notice??lastDiscovery,kind=prompt?interactionKind(prompt):'lore',action=kind==='talk'?'TALK':nearby&&floor.environment==='library'?'BROWSE SHELVES':'READ FIELD NOTES';
  return <section className={`interior-mode theme-${map.theme}`}>
+  <div className="interior-world">
   <canvas ref={canvasRef} tabIndex={inputBlocked.current?-1:0} aria-hidden={inputBlocked.current||undefined} aria-label={`${floor.name}. Move with arrow keys or WASD; press E for nearby lore, M for the area map.`}/>
   <div ref={markerViewport} className="world-interaction-viewport" inert={inputBlocked.current}><div ref={markerSpace} className="world-interaction-space">{nearby&&!inputBlocked.current&&<button ref={markerButton} type="button" className="world-interaction-badge" aria-label={`${action}: ${nearby.name}`} onClick={()=>openLore(nearby)}><InteractionIcon kind={kind}/><span>{kind==='talk'?'TALK':'READ'}</span><kbd>E</kbd></button>}</div></div>
+  </div>
   <header inert={paused||areaMapOpen||!!dialogue}><div className="interior-header-actions"><button type="button" onClick={onExit}>← Main map</button><button type="button" onClick={openAreaMap}>Area map <kbd>M</kbd></button></div><div className="interior-floor-title"><small>{map.name}</small><b>{floor.name}</b><span>{floor.subtitle}</span></div><button type="button" className="interior-pause-button" aria-label={`Pause. Floor ${floorIndex+1} of ${map.floors.length}`} onClick={pauseInterior}>Ⅱ<small>{floorIndex+1}/{map.floors.length}</small></button></header>
   <div className="interior-hud" inert={paused||areaMapOpen||!!dialogue}>
   <div className="interior-dpad" aria-label="Touch movement controls">{(['up','left','down','right'] as const).map(direction=>{

@@ -42,14 +42,17 @@ const activities: Record<string, {id: Activity; label: string}> = {
 // Review entrances are local only, and never overwrite a real journey.
 const qaParams = import.meta.env.DEV ? new URLSearchParams(window.location.search) : null;
 const qa = qaParams?.get('qa');
+const qaFloor = Math.max(0,Math.floor(Number(qaParams?.get('floor'))||0));
 const qaActivity = Object.values(activities).find(activity => activity.id === qa)?.id;
 const reviewRoad = qa === 'road' ? routes.find(route => route.id === qaParams?.get('path')) : null;
 const reviewInterior = () => {
   if (qa !== 'interior') return null;
   const map = getInteriorMap(qaParams?.get('area') ?? 'tower');
   if (!map) return null;
-  const zone = map.floors[0].zones.find(item => item.id === qaParams?.get('near'));
-  return zone ? {...map, floors: [{...map.floors[0], spawn: [zone.x, zone.y + zone.h * .55] as [number, number]}, ...map.floors.slice(1)]} : map;
+  const floorIndex = Math.min(map.floors.length-1,qaFloor);
+  const zone = map.floors[floorIndex].zones.find(item => item.id === qaParams?.get('near'));
+  // Stand beside the landmark, outside a staircase trigger beneath its centre.
+  return zone ? {...map, floors: map.floors.map((floor,index)=>index===floorIndex?{...floor,spawn:[Math.min(floor.width-30,zone.x+100),zone.y+zone.h*.55] as [number,number]}:floor)} : map;
 };
 
 export default function App() {
@@ -225,7 +228,7 @@ export default function App() {
     {journal && <FieldJournal sandbox={!isGame} discovered={gameDiscovered.current} notebook={notebook.current} onClose={() => setJournal(false)}/>}
     {transfer && <JourneyTransfer snapshot={snapshot} onImport={journey => { restoreJourney(journey); setWelcome(false); setMenu(true); }} onClose={() => setTransfer(false)}/>}
     {sceneOpen && <SceneBoundary key={activity ?? interior?.id ?? overview?.id} onRecover={closeScene}><Suspense fallback={loading}>
-      {interior && <InteriorMode map={interior} onExit={closeScene} onReadEntry={readEntry}/>}
+      {interior && <InteriorMode map={interior} initialFloorIndex={qa==='interior'?qaFloor:0} onExit={closeScene} onReadEntry={readEntry}/>}
       {overview && <SubMap map={overview} onExit={closeScene} onReadEntry={readEntry}/>}
       {activity === 'red-dot' && <RedDotMinigame {...activityProps}/>}
       {activity === 'trauma' && <TraumaLabyrinth {...activityProps}/>}
